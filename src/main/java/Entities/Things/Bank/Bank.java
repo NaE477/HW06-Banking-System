@@ -9,6 +9,10 @@ public class Bank {
         this.name = name;
     }
 
+    public Bank(int bankId) {
+        this.id = bankId;
+    }
+
     public int getId() {
         return id;
     }

@@ -15,6 +15,13 @@ abstract public class User {
         this.userId = userId;this.username = username;this.password = password;
     }
 
+    public User(String firstname,String lastname,String username,String password){
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.username = username;
+        this.password = password;
+    }
+
     public int getUserId() {
         return userId;
     }

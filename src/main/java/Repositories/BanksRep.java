@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BanksRep implements ThingCRUD<Bank> {
 
@@ -34,14 +36,17 @@ public class BanksRep implements ThingCRUD<Bank> {
 
     @Override
     public Integer insert(Bank bank) {
-        String insertStmt = "INSERT INTO bank.public.banks (" +
+        String insertStmt = "INSERT INTO banks (" +
                 "bank_name) VALUES (?) " +
                 "RETURNING id;";
         try {
             PreparedStatement ps = connection.prepareStatement(insertStmt);
             ps.setString(1,bank.getName());
             ps.executeUpdate();
-            return ps.getResultSet().getInt(1);
+            ResultSet rs = ps.getGeneratedKeys();
+            if(rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -50,7 +55,7 @@ public class BanksRep implements ThingCRUD<Bank> {
 
     @Override
     public Bank read(Bank bank) {
-        String selectStmt = "SELECT * FROM bank.public.banks " +
+        String selectStmt = "SELECT * FROM banks " +
                 " WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
@@ -71,7 +76,7 @@ public class BanksRep implements ThingCRUD<Bank> {
 
     @Override
     public Bank read(Integer bankId) {
-        String selectStmt = "SELECT * FROM bank.public.banks " +
+        String selectStmt = "SELECT * FROM banks " +
                 "WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
@@ -90,14 +95,37 @@ public class BanksRep implements ThingCRUD<Bank> {
     }
 
     @Override
+    public List<Bank> readAll() {
+        List<Bank> banks = new ArrayList<>();
+        String selectStmt = "SELECT * FROM banks ";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                 banks.add(new Bank(
+                        rs.getInt("id"),
+                        rs.getString("name"))
+                );
+            }
+            return banks;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public Integer update(Bank bank) {
-        String updateStmt = "UPDATE bank.public.banks " +
+        String updateStmt = "UPDATE banks " +
                 "SET bank_name = ? WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(updateStmt);
             ps.setString(1,bank.getName());
             ps.setInt(2,bank.getId());
-            return ps.getResultSet().getInt("id");
+            ResultSet rs = ps.getGeneratedKeys();
+            if(rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -106,7 +134,7 @@ public class BanksRep implements ThingCRUD<Bank> {
 
     @Override
     public void delete(Bank bank) {
-        String delStmt = "DELETE FROM bank.public.banks WHERE id = ?;";
+        String delStmt = "DELETE FROM banks WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
             ps.setInt(1,bank.getId());

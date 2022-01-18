@@ -7,4 +7,5 @@ public interface Authentic<T> {
     Integer signup(T t);
     Boolean authentication(String username, String password);
     Boolean exists(String username);
+    Boolean exists(Integer id);
 }

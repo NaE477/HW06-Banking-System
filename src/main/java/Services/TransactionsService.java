@@ -6,6 +6,7 @@ import Interfaces.ThingCRUD;
 import Repositories.TransactionsRep;
 
 import java.sql.Connection;
+import java.util.List;
 
 public class TransactionsService implements Findable<Transaction> {
     Connection connection;
@@ -13,7 +14,7 @@ public class TransactionsService implements Findable<Transaction> {
 
     public TransactionsService(Connection connection) {
         this.connection = connection;
-        tr = new TransactionsRep(connection);
+        tr = new TransactionsRep(this.connection);
     }
 
     public Integer makeNew(Transaction transaction){
@@ -24,10 +25,18 @@ public class TransactionsService implements Findable<Transaction> {
         return tr.update(transaction);
     }
 
+    public List<Transaction> findAllByBranch(Integer branchId){
+        return tr.readByBranchId(branchId);
+    }
 
     @Override
     public Transaction findById(Integer transactionId) {
         return tr.read(transactionId);
+    }
+
+    @Override
+    public List<Transaction> findAll() {
+        return tr.readAll();
     }
 
     @Override

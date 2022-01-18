@@ -1,12 +1,13 @@
 package Services;
 
-import Entities.Users.Bank.Clerk;
+import Entities.Users.Clerk;
 import Entities.Users.User;
 import Interfaces.Authentic;
 import Interfaces.Findable;
 import Repositories.ClerksRep;
 
 import java.sql.Connection;
+import java.util.List;
 
 public class ClerksService implements Authentic<Clerk>, Findable<Clerk> {
     Connection connection;
@@ -15,6 +16,13 @@ public class ClerksService implements Authentic<Clerk>, Findable<Clerk> {
     public ClerksService(Connection connection){
         this.connection = connection;
         cr = new ClerksRep(connection);
+    }
+    public Integer fire(Integer clerkId){
+        if(exists(clerkId)) {
+            cr.delete(clerkId);
+            return clerkId;
+        }
+        else return 0;
     }
 
     @Override
@@ -39,6 +47,11 @@ public class ClerksService implements Authentic<Clerk>, Findable<Clerk> {
     }
 
     @Override
+    public Boolean exists(Integer id) {
+        return cr.read(id) != null;
+    }
+
+    @Override
     public Clerk find(Clerk clerk){
         return cr.read(clerk.getUsername());
     }
@@ -46,5 +59,10 @@ public class ClerksService implements Authentic<Clerk>, Findable<Clerk> {
     @Override
     public Clerk findById(Integer clerkId){
         return cr.read(clerkId);
+    }
+
+    @Override
+    public List<Clerk> findAll() {
+        return cr.readAll();
     }
 }

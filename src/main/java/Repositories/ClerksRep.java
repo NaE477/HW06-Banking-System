@@ -1,13 +1,11 @@
 package Repositories;
 
-import App.HandyClasses.ConClass;
-import Entities.Users.Bank.Clerk;
+import Entities.Users.Clerk;
 import Interfaces.UserCRUD;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClerksRep implements UserCRUD<Clerk> {
     Connection connection;
@@ -27,8 +25,8 @@ public class ClerksRep implements UserCRUD<Clerk> {
                 "salary     DOUBLE PRECISION," +
                 "branch_id  INTEGER," +
                 "president_id   INTEGER," +
-                "FOREIGN KEY (branch_id) REFERENCES bank.public.branches (id)," +
-                "FOREIGN KEY (president_id) REFERENCES bank.public.presidents (id)" +
+                "FOREIGN KEY (branch_id) REFERENCES branches (id)," +
+                "FOREIGN KEY (president_id) REFERENCES presidents (id)" +
                 ");";
         try {
             PreparedStatement ps = connection.prepareStatement(createStmt);
@@ -40,10 +38,10 @@ public class ClerksRep implements UserCRUD<Clerk> {
 
     @Override
     public Integer insert(Clerk clerk) {
-        String insertStmt = "INSERT INTO bank.public.clerks (firstname, lastname, username, password, salary, branch_id, president_id) " +
+        String insertStmt = "INSERT INTO clerks (firstname, lastname, username, password, salary, branch_id, president_id) " +
                 "VALUES (?,?,?,?,?,?,?) RETURNING id;";
         try {
-            PreparedStatement ps = connection.prepareStatement(insertStmt);
+            PreparedStatement ps = connection.prepareStatement(insertStmt, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, clerk.getFirstname());
             ps.setString(2, clerk.getLastname());
             ps.setString(3, clerk.getUsername());
@@ -52,9 +50,9 @@ public class ClerksRep implements UserCRUD<Clerk> {
             ps.setInt(6, clerk.getBranch_id());
             ps.setInt(7, clerk.getPresident_id());
             ps.executeUpdate();
-            ResultSet generatedId = ps.getGeneratedKeys();
-            if(generatedId.next()) {
-                return generatedId.getInt(1);
+            ResultSet rs = ps.getGeneratedKeys();
+            if(rs.next()) {
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -64,10 +62,10 @@ public class ClerksRep implements UserCRUD<Clerk> {
 
     @Override
     public Clerk read(String username) {
-        String readQuery = "SELECT * FROM bank.public.clerks WHERE username = ?;";
+        String readQuery = "SELECT * FROM clerks WHERE username = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(readQuery);
-            ps.setString(1,username);
+            ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Clerk(
@@ -89,10 +87,10 @@ public class ClerksRep implements UserCRUD<Clerk> {
 
     @Override
     public Clerk read(Integer clerkId) {
-        String readQuery = "SELECT * FROM bank.public.clerks WHERE id = ?;";
+        String readQuery = "SELECT * FROM clerks WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(readQuery);
-            ps.setInt(1,clerkId);
+            ps.setInt(1, clerkId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Clerk(
@@ -113,19 +111,26 @@ public class ClerksRep implements UserCRUD<Clerk> {
     }
 
     @Override
-    public Integer update(Clerk clerk) {
-        String updateStmt = "UPDATE bank.public.clerks " +
-                "SET password = ?, firstname = ?, lastname = ?, salary = ?" +
-                " WHERE username = ? RETURNING id;" ;
+    public List<Clerk> readAll() {
+        List<Clerk> clerks = new ArrayList<>();
+        String readQuery = "SELECT * FROM clerks;";
         try {
-            PreparedStatement ps = connection.prepareStatement(updateStmt);
-            ps.setString(1, clerk.getPassword());
-            ps.setString(2, clerk.getFirstname());
-            ps.setString(3,clerk.getLastname());
-            ps.setDouble(4,clerk.getSalary());
-            ps.setString(5,clerk.getUsername());
-            ps.executeUpdate();
-            return ps.getResultSet().getInt("id");
+            PreparedStatement ps = connection.prepareStatement(readQuery);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                clerks.add(new Clerk(
+                                rs.getInt("id"),
+                                rs.getString("firstname"),
+                                rs.getString("lastname"),
+                                rs.getString("username"),
+                                rs.getString("password"),
+                                rs.getInt("branch_id"),
+                                rs.getInt("president_id"),
+                                rs.getDouble("salary")
+                        )
+                );
+            }
+            return clerks;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -133,15 +138,41 @@ public class ClerksRep implements UserCRUD<Clerk> {
     }
 
     @Override
-    public Integer update(String username,String password) {
-        String passChangeStmt = "UPDATE bank.public.clerks SET password = ? WHERE username = ? RETURNING id;";
+    public Integer update(Clerk clerk) {
+        String updateStmt = "UPDATE clerks " +
+                "SET password = ?, firstname = ?, lastname = ?, salary = ?" +
+                " WHERE username = ? RETURNING id;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(updateStmt);
+            ps.setString(1, clerk.getPassword());
+            ps.setString(2, clerk.getFirstname());
+            ps.setString(3, clerk.getLastname());
+            ps.setDouble(4, clerk.getSalary());
+            ps.setString(5, clerk.getUsername());
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if(rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Integer update(String username, String password) {
+        String passChangeStmt = "UPDATE clerks SET password = ? WHERE username = ? RETURNING id;";
         {
             try {
                 PreparedStatement ps = connection.prepareStatement(passChangeStmt);
-                ps.setString(1,password);
-                ps.setString(2,username);
+                ps.setString(1, password);
+                ps.setString(2, username);
                 ps.executeUpdate();
-                return ps.getResultSet().getInt(1);
+                ResultSet rs = ps.getGeneratedKeys();
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -152,10 +183,10 @@ public class ClerksRep implements UserCRUD<Clerk> {
 
     @Override
     public void delete(Integer clerkId) {
-        String delStmt = "DELETE FROM bank.public.clerks WHERE id = ?;";
+        String delStmt = "DELETE FROM clerks WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
-            ps.setInt(1,clerkId);
+            ps.setInt(1, clerkId);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

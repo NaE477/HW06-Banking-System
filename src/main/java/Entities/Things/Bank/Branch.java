@@ -1,24 +1,36 @@
 package Entities.Things.Bank;
 
 import Entities.Things.Customer.Account;
-import Entities.Users.Bank.Clerk;
-import Entities.Users.Bank.President;
+import Entities.Users.Clerk;
+import Entities.Users.President;
 
 import java.util.List;
 
 public class Branch {
     private int id;
-    private int bank_id;
-    private int president_id;
+    private Bank bank;
+    private President president;
     private String branch_name;
     private List<Clerk> clerks;
     private List<Account> accounts;
 
-    public Branch(int id, int bank_id, int president_id,String bank_name) {
+    public Branch(int id, Bank bank, President president,String branch_name) {
         this.id = id;
-        this.bank_id = bank_id;
-        this.president_id = president_id;
-        this.branch_name = bank_name;
+        this.bank = bank;
+        this.president = president;
+        this.branch_name = branch_name;
+    }
+
+    public Branch(int branchId) {
+        this.id = branchId;
+    }
+
+    public President getPresident() {
+        return president;
+    }
+
+    public void setBank(Bank bank) {
+        this.bank = bank;
     }
 
     public int getId() {
@@ -29,20 +41,20 @@ public class Branch {
         this.id = id;
     }
 
-    public int getBank_id() {
-        return bank_id;
+    public Bank getBank() {
+        return bank;
     }
 
-    public void setBank_id(int bank_id) {
-        this.bank_id = bank_id;
+    public void setBank_id(Bank bank) {
+        this.bank = bank;
     }
 
-    public int getPresident_id() {
-        return president_id;
+    public President president() {
+        return president;
     }
 
-    public void setPresident_id(int president_id) {
-        this.president_id = president_id;
+    public void setPresident(President president) {
+        this.president = president;
     }
 
     public List<Clerk> getClerks() {

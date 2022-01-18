@@ -1,12 +1,14 @@
 package Services;
 
-import Entities.Users.Bank.President;
+import Entities.Users.Clerk;
+import Entities.Users.President;
 import Entities.Users.User;
 import Interfaces.Authentic;
 import Interfaces.Findable;
 import Repositories.PresidentsRep;
 
 import java.sql.Connection;
+import java.util.List;
 
 public class PresidentsService implements Authentic<President>, Findable<President> {
     Connection connection;
@@ -15,6 +17,10 @@ public class PresidentsService implements Authentic<President>, Findable<Preside
     public PresidentsService(Connection connection){
         this.connection = connection;
         pr = new PresidentsRep(connection);
+    }
+
+    public List<Clerk> findClerks(President president){
+        return pr.readClerks(president);
     }
 
     @Override
@@ -33,9 +39,15 @@ public class PresidentsService implements Authentic<President>, Findable<Preside
         return user != null && user.getPassword().equals(password);
     }
 
+
     @Override
     public Boolean exists(String username) {
         return pr.read(username) != null;
+    }
+
+    @Override
+    public Boolean exists(Integer id) {
+        return pr.read(id) != null;
     }
 
     @Override
@@ -46,5 +58,10 @@ public class PresidentsService implements Authentic<President>, Findable<Preside
     @Override
     public President findById(Integer id) {
         return pr.read(id);
+    }
+
+    @Override
+    public List<President> findAll() {
+        return pr.readAll();
     }
 }

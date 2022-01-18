@@ -1,6 +1,10 @@
 package App.HandyClasses;
 
 
+import Services.ClerksService;
+import Services.ClientsService;
+import Services.PresidentsService;
+
 import java.sql.*;
 import java.util.Locale;
 import java.util.Scanner;
@@ -8,80 +12,32 @@ import java.util.regex.Pattern;
 
 public class Utilities {
 
-    ConClass conClass = ConClass.getInstance();
-    Connection connection = conClass.getConnection();
+    Connection connection;
     Scanner scanner = new Scanner(System.in);
+    ClientsService clientsService;
+    ClerksService clerksService;
+    PresidentsService presidentsService;
 
+    public Utilities(Connection connection){
+        this.connection = connection;
+        clerksService = new ClerksService(connection);
+        clientsService = new ClientsService(connection);
+        presidentsService = new PresidentsService(connection);
+    }
 
-
-
-    /*public void signUp() throws SQLException, InterruptedException {
-        String username = usernameReceiver();
-        System.out.print("Password: ");
-        String password = scanner.nextLine();
-        String role = roleReceiver().toUpperCase(Locale.ROOT);
-        switch (role) {
-            case "ADMIN" -> {
-                adminService.signUpService(username, password);
-                System.out.println("You've been singned up successfully!");
-                Thread.sleep(1000);
-            }
-            case "CINEMA" -> {
-                String cinemaName = regexAdder(cinemaNameRegex, "Cinema Name", 4);
-                cinemaService.signUpService(username, password, cinemaName);
-                System.out.println("You've been singned up successfully!");
-                Thread.sleep(1000);
-            }
-            case "CUSTOMER" -> {
-                System.out.print("First Name: ");
-                String firstname = scanner.nextLine();
-                System.out.print("Last Name: ");
-                String lastname = scanner.nextLine();
-                customerService.signUpService(username, password, firstname, lastname);
-                System.out.println("You've been singned up successfully!");
-                Thread.sleep(1000);
-            }
-        }
-    }*/
-
-    /*public String usernameReceiver() throws SQLException {
+    public String usernameReceiver() throws SQLException {
         while (true) {
             System.out.print("Username: ");
             String username = scanner.nextLine();
-            if (checkExistenceByRep(username)) {
+            if (clerksService.exists(username) || clientsService.exists(username) || presidentsService.exists(username)) {
                 System.out.println("This username Already Exists! Try another one: ");
-            } else {
+            }
+            else {
                 return username;
             }
         }
     }
 
-    private boolean checkExistenceByRep(String username) throws SQLException {
-        boolean flag;
-        String adminUsernames = adminService.getUsernames();
-        String customerUsernames = customerService.getUsernames();
-        String cinemaUsernames = cinemaService.getUsernames();
-
-        if (checkExistenceByString(adminUsernames, username)) {
-            flag = true;
-        } else if (checkExistenceByString(customerUsernames, username)) {
-            flag = true;
-        } else flag = checkExistenceByString(cinemaUsernames, username);
-
-        return flag;
-    }*/
-
-    public String roleReceiver() {
-        System.out.print("Role(Admin,Cinema,Customer): ");
-        String input = scanner.nextLine();
-        if (input.toUpperCase(Locale.ROOT).equals("CINEMA") || input.toUpperCase(Locale.ROOT).equals("ADMIN") || input.toUpperCase(Locale.ROOT).equals("CUSTOMER")) {
-            return input;
-        } else {
-            System.out.println("Wrong Role!");
-            roleReceiver();
-        }
-        return null;
-    }
 
     private boolean checkExistenceByString(String usernames, String username) {
         boolean flag = true;
@@ -93,6 +49,24 @@ public class Utilities {
         }
         return flag;
     }
+
+    public String roleReceiver() {
+        while (true) {
+            System.out.print("Role(Admin,Cinema,Customer): ");
+            String input = scanner.nextLine();
+            if (
+                    input.toUpperCase(Locale.ROOT).equals("PRESIDENT") ||
+                    input.toUpperCase(Locale.ROOT).equals("CLERK") ||
+                    input.toUpperCase(Locale.ROOT).equals("CLIENT")
+            ) {
+                return input;
+            } else {
+                System.out.println("Wrong Role!");
+            }
+        }
+    }
+
+
 
 
     public String regexAdder(String regex, String tag, int leastChars) {

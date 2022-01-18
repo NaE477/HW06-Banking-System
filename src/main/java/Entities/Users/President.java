@@ -1,4 +1,4 @@
-package Entities.Users.Bank;
+package Entities.Users;
 
 import Entities.Things.Bank.Branch;
 import Entities.Users.User;
@@ -53,5 +53,14 @@ public class President extends User {
 
     public void setSalary(Double salary) {
         this.salary = salary;
+    }
+
+    @Override
+    public String toString() {
+        return "President ID: " + super.getUserId() +
+                " Full Name: " + super.getFirstname()  + " " + super.getLastname() +
+                " Username: " + super.getPassword() +
+                " Branch ID: " + branch_id +
+                " Salary: " + salary.intValue();
     }
 }

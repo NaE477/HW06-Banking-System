@@ -1,4 +1,4 @@
-package Entities.Users.Bank;
+package Entities.Users;
 
 import Entities.Things.Bank.Branch;
 import Entities.Users.User;
@@ -14,9 +14,10 @@ public class Clerk extends User {
         this.branch_id = branch_id; this.president_id = president_id;
         this.salary = salary;
     }
-    public Clerk(int userId,String firstname,String lastname,String username,String password,Double salary){
-        super(userId,firstname,lastname,username,password);
+    public Clerk(String firstname,String lastname,String username,String password,int branch_id, int president_id,Double salary){
+        super(firstname,lastname,username,password);
         this.salary = salary;
+        this.branch_id = branch_id; this.president_id = president_id;
     }
 
     public int getBranch_id() {
@@ -41,5 +42,13 @@ public class Clerk extends User {
 
     public void setSalary(Double salary) {
         this.salary = salary;
+    }
+
+    @Override
+    public String toString() {
+        return "Clerk ID: " + super.getUserId() +
+                " First Name: " + super.getFirstname() +
+                " Last Name: " + super.getLastname() +
+                " Salary=" + salary;
     }
 }

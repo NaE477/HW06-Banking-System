@@ -1,4 +1,4 @@
-package Entities.Users.Client;
+package Entities.Users;
 
 import Entities.Things.Customer.Account;
 import Entities.Users.User;
