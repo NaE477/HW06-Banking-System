@@ -1,4 +1,4 @@
-package App;
+package App.HandyClasses;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,7 +13,7 @@ public class ConClass {
         try {
             Class.forName("org.postgresql.Driver");
             this.connection = DriverManager.
-                    getConnection("jdbc:postgresql://localhost:5432/cinemahw",
+                    getConnection("jdbc:postgresql://localhost:5432/bank",
                             "intellij", "intellij");
         }
         catch (SQLException e){
@@ -38,7 +38,7 @@ public class ConClass {
             return conClass;
         }
         catch (SQLException e){
-            System.out.println(e);
+            e.printStackTrace();
         }
         return conClass;
     }

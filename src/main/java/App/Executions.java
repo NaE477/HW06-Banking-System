@@ -1,35 +1,40 @@
 package App;
 
-import Entities.Users.Bank.Clerk;
-import Entities.Users.Bank.President;
+import App.HandyClasses.ConClass;
 import Entities.Users.User;
-import Repositories.AccountsRep;
+import Services.ClerksService;
 
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Executions {
 
 
-    Connection connection = ConClass.getInstance().getConnection();
-    Scanner scanner = new Scanner(System.in);
-    AccountsRep ar = new AccountsRep(connection);
+    static Connection connection = ConClass.getInstance().getConnection();
+    static Scanner scanner = new Scanner(System.in);
+    static ClerksService cs = new ClerksService(connection);
 
     public static void main(String[] args) {
-
+        while (true){
+            System.out.println("Welcome to bank application.");
+            System.out.print("Press L/l to Login or S/s to Sign up,or E/e to Exit: ");
+            String opt = scanner.nextLine().toUpperCase(Locale.ROOT);
+            switch (opt){
+                case "L":
+                    User user = login();
+            }
+        }
     }
 
-    public User login() throws SQLException {
+    public static User login() {
         System.out.print("Username: ");
         String username = scanner.nextLine();
         System.out.print("Password: ");
         String password = scanner.nextLine();
-        User user = ar.authentication(username, password);
-        if (user instanceof Clerk) {
-
-        } else if (user instanceof President) {
-
+        if(cs.authentication(username,password)){
+            return cs.login(username);
         }
+        else return null;
     }
 }

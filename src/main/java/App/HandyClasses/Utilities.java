@@ -1,10 +1,5 @@
-package App;
+package App.HandyClasses;
 
-
-import Entities.Users.Bank.Clerk;
-import Entities.Users.Bank.President;
-import Entities.Users.User;
-import Repositories.AccountsRep;
 
 import java.sql.*;
 import java.util.Locale;
@@ -16,12 +11,11 @@ public class Utilities {
     ConClass conClass = ConClass.getInstance();
     Connection connection = conClass.getConnection();
     Scanner scanner = new Scanner(System.in);
-    AccountsRep ar = new AccountsRep(connection);
 
 
 
 
-    public void signUp() throws SQLException, InterruptedException {
+    /*public void signUp() throws SQLException, InterruptedException {
         String username = usernameReceiver();
         System.out.print("Password: ");
         String password = scanner.nextLine();
@@ -48,9 +42,9 @@ public class Utilities {
                 Thread.sleep(1000);
             }
         }
-    }
+    }*/
 
-    public String usernameReceiver() throws SQLException {
+    /*public String usernameReceiver() throws SQLException {
         while (true) {
             System.out.print("Username: ");
             String username = scanner.nextLine();
@@ -75,7 +69,7 @@ public class Utilities {
         } else flag = checkExistenceByString(cinemaUsernames, username);
 
         return flag;
-    }
+    }*/
 
     public String roleReceiver() {
         System.out.print("Role(Admin,Cinema,Customer): ");
