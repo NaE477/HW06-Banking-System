@@ -1,17 +1,12 @@
 package Entities.Things;
 
-import Entities.Things.Bank.Bank;
-import Entities.Things.Customer.Account;
-import Entities.Things.Customer.Card;
-
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Transaction {
     private int id,branch_id,bank_id,src_account_id,des_account_id;
     private double amount;
     private final double commission = 600.0;
-    private Status status;
+    private TransactionStatus status;
     private LocalDate transactionTime;
 
     public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,LocalDate transactionTime) {
@@ -21,11 +16,11 @@ public class Transaction {
         this.src_account_id = src_account_id;
         this.des_account_id = des_account_id;
         this.amount = amount;
-        this.status = Status.PENDING;
+        this.status = TransactionStatus.PENDING;
         this.transactionTime = transactionTime;
     }
 
-    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,Status status,LocalDate localDate) {
+    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,TransactionStatus status,LocalDate localDate) {
         this.id = id;
         this.branch_id = branch_id;
         this.bank_id = bank_id;
@@ -87,11 +82,11 @@ public class Transaction {
         return commission;
     }
 
-    public Status getStatus() {
+    public TransactionStatus getTransactionStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setTransactionStatus(TransactionStatus status) {
         this.status = status;
     }
 

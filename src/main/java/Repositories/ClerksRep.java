@@ -137,6 +137,33 @@ public class ClerksRep implements UserCRUD<Clerk> {
         return null;
     }
 
+    public List<Clerk> readAllByBranch(Integer branchId){
+        List<Clerk> clerks = new ArrayList<>();
+        String readQuery = "SELECT * FROM clerks WHERE branch_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(readQuery);
+            ps.setInt(1,branchId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                clerks.add(new Clerk(
+                                rs.getInt("id"),
+                                rs.getString("firstname"),
+                                rs.getString("lastname"),
+                                rs.getString("username"),
+                                rs.getString("password"),
+                                rs.getInt("branch_id"),
+                                rs.getInt("president_id"),
+                                rs.getDouble("salary")
+                        )
+                );
+            }
+            return clerks;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public Integer update(Clerk clerk) {
         String updateStmt = "UPDATE clerks " +
@@ -168,11 +195,8 @@ public class ClerksRep implements UserCRUD<Clerk> {
                 PreparedStatement ps = connection.prepareStatement(passChangeStmt);
                 ps.setString(1, password);
                 ps.setString(2, username);
-                ps.executeUpdate();
-                ResultSet rs = ps.getGeneratedKeys();
-                if(rs.next()) {
-                    return rs.getInt(1);
-                }
+                int id = ps.executeUpdate();
+                    return id;
             } catch (SQLException e) {
                 e.printStackTrace();
             }

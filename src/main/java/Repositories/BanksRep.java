@@ -1,8 +1,6 @@
 package Repositories;
 
 import Entities.Things.Bank.Bank;
-import Entities.Things.Status;
-import Entities.Things.Transaction;
 import Interfaces.ThingCRUD;
 
 import java.sql.Connection;

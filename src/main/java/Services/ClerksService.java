@@ -65,4 +65,8 @@ public class ClerksService implements Authentic<Clerk>, Findable<Clerk> {
     public List<Clerk> findAll() {
         return cr.readAll();
     }
+
+    public List<Clerk> findAllByBranch(Integer branchId){
+        return cr.readAllByBranch(branchId);
+    }
 }

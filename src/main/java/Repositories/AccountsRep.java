@@ -3,7 +3,6 @@ package Repositories;
 import Entities.Things.Bank.Bank;
 import Entities.Things.Bank.Branch;
 import Entities.Things.Customer.Account;
-import Entities.Things.Customer.Card;
 import Entities.Users.Client;
 import Interfaces.ThingCRUD;
 
@@ -27,7 +26,6 @@ public class AccountsRep implements ThingCRUD<Account> {
                 "balance double precision," +
                 "bank_id integer," +
                 "branch_id integer," +
-                "card_id integer," +
                 "client_id integer" +
                 ");"; // foreign keys applied
 
@@ -42,9 +40,9 @@ public class AccountsRep implements ThingCRUD<Account> {
     @Override
     public Integer insert(Account account) {
         String insertStmt = "INSERT INTO accounts (" +
-                "accountnumber, balance, bank_id, branch_id, card_id, client_id" +
+                "accountnumber, balance, bank_id, branch_id, client_id" +
                 ") " +
-                "VALUES (?,?,?,?,?,?)" +
+                "VALUES (?,?,?,?,?)" +
                 "RETURNING id;";
         try {
             PreparedStatement ps = connection.prepareStatement(insertStmt);
@@ -52,8 +50,7 @@ public class AccountsRep implements ThingCRUD<Account> {
             ps.setDouble(2,account.getBalance());
             ps.setInt(3,account.getBank().getId());
             ps.setInt(4,account.getBranch().getId());
-            ps.setInt(5,account.getCard().getId());
-            ps.setInt(6,account.getClient().getUserId());
+            ps.setInt(5,account.getClient().getUserId());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if(rs.next()) {
@@ -71,7 +68,6 @@ public class AccountsRep implements ThingCRUD<Account> {
                 " INNER JOIN clients c on c.id = accounts.client_id " +
                 "INNER JOIN banks b on b.id = accounts.bank_id " +
                 "INNER JOIN branches b2 on b.id = b2.bank_id " +
-                "INNER JOIN cards c2 on accounts.id = c2.account_id " +
                 "WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
@@ -91,8 +87,7 @@ public class AccountsRep implements ThingCRUD<Account> {
                                 rs.getString("bank_name")
                         ),
                         new Branch(rs.getInt("b2.id")),
-                        rs.getDouble("balance"),
-                        new Card(rs.getInt("c2.id"))
+                        rs.getDouble("balance")
                 );
             } else return null;
         } catch (SQLException e) {
@@ -123,10 +118,10 @@ public class AccountsRep implements ThingCRUD<Account> {
                                 rs.getString("bank_name")
                         ),
                         new Branch(rs.getInt("b2.id")),
-                        rs.getDouble("balance"),
-                        new Card(rs.getInt("c2.id"))
+                        rs.getDouble("balance")
                 );
             }
+            else return null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -154,8 +149,74 @@ public class AccountsRep implements ThingCRUD<Account> {
                                 rs.getString("bank_name")
                         ),
                         new Branch(rs.getInt("b2.id")),
-                        rs.getDouble("balance"),
-                        new Card(rs.getInt("c2.id"))
+                        rs.getDouble("balance")
+                        )
+                );
+            }
+            return accounts;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Account> readAllByBranch(Integer branchId){
+        List<Account> accounts = new ArrayList<>();
+        String selectStmt = "SELECT * FROM accounts WHERE branch_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,branchId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                accounts.add(new Account(
+                                rs.getInt("id"),
+                                rs.getString("accountnumber"),
+                                new Client(
+                                        rs.getInt("c.id"),
+                                        rs.getString("username"),
+                                        rs.getString("password")
+                                ),
+                                new Bank(
+                                        rs.getInt("b.id"),
+                                        rs.getString("bank_name")
+                                ),
+                                new Branch(rs.getInt("b2.id")),
+                                rs.getDouble("balance")
+                        )
+                );
+            }
+            return accounts;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public List<Account> readAllByClient(Integer clientId){
+        List<Account> accounts = new ArrayList<>();
+        String selectStmt = "SELECT * FROM accounts" +
+                " INNER JOIN clients c on c.id = accounts.client_id " +
+                " Inner Join banks b on b.id = accounts.bank_id " +
+                " INNER JOIN branches b2 on b.id = b2.bank_id" +
+                " WHERE client_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,clientId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()){
+                accounts.add(new Account(
+                        clientId,
+                        rs.getString("accountnumber"),
+                        new Client(
+                                rs.getInt("c.id"),
+                                rs.getString("username"),
+                                rs.getString("password")
+                        ),
+                        new Bank(
+                                rs.getInt("b.id"),
+                                rs.getString("bank_name")
+                        ),
+                        new Branch(rs.getInt("b2.id")),
+                        rs.getDouble("balance")
                         )
                 );
             }

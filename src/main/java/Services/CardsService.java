@@ -26,7 +26,33 @@ public class CardsService implements Findable<Card> {
         return cr.update(card);
     }
 
+    public Integer removeByAccountAndBranch(Integer accountId,Integer branchId){
+        return cr.deleteByAccountAndBranch(accountId,branchId);
+    }
+    public Integer removeByAccount(Integer accountId){
+        return cr.deleteByAccount(accountId);
+    }
+    public String removeById(Integer cardId){
+        return cr.deleteById(cardId);
+    }
+    public Integer removeByCardNumber(String cardNumber){
+        return cr.deleteByNumber(cardNumber);
+    }
 
+    public Boolean existsForClient(Integer clientId,Integer cardId){
+        return findByClient(clientId,cardId) != null;
+    }
+
+    public List<Card> findAllByClient(Integer clientId) {
+        return cr.readAllByClient(clientId);
+    }
+
+    public Card findByClient(Integer clientId,Integer cardId){
+        return cr.readByClient(clientId,cardId);
+    }
+    public Card findByNumber(String cardNumber){
+        return cr.readByNumber(cardNumber);
+    }
 
     @Override
     public Card findById(Integer cardId) {

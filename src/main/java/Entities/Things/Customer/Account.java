@@ -11,16 +11,17 @@ public class Account {
     private Bank bank;
     private Branch branch;
     private Double balance;
-    private Card card;
 
-    public Account(int id, String accountNumber, Client client, Bank bank, Branch branch, Double balance, Card card) {
+    public Account(int id, String accountNumber, Client client, Bank bank, Branch branch, Double balance) {
         this.id = id;
         this.accountNumber = accountNumber;
         this.client = client;
         this.bank = bank;
         this.branch = branch;
         this.balance = balance;
-        this.card = card;
+    }
+    public Account(int id){
+        this.id = id;
     }
 
     public int getId() {
@@ -71,11 +72,4 @@ public class Account {
         this.balance = balance;
     }
 
-    public Card getCard() {
-        return card;
-    }
-
-    public void setCard(Card card) {
-        this.card = card;
-    }
 }

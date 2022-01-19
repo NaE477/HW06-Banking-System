@@ -6,7 +6,9 @@ import Services.ClientsService;
 import Services.PresidentsService;
 
 import java.sql.*;
+import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -36,6 +38,21 @@ public class Utilities {
                 return username;
             }
         }
+    }
+
+    public String accountNumberMaker(){
+        Random random = new Random();
+        return String.valueOf(10000000 + (int) (random.nextFloat() * 89999000));
+    }
+
+    public String cardNumberGenerator(){
+        Random random = new Random();
+        return String.valueOf(100000000000L + (long) (random.nextFloat() * 899999000000L));
+    }
+
+    public int cvv2Generator(){
+        Random random = new Random();
+        return 100 + (int) (random.nextFloat() * 890);
     }
 
 
@@ -109,6 +126,21 @@ public class Utilities {
             doubleReceiver();
         }
         return 0.0;
+    }
+
+    public <T> void iterateThrough(List<T> lists){
+        if(lists.size() > 0){
+            for(Object object : lists){
+                System.out.println(object);
+            }
+        }
+        else {
+            try {
+                printYellow("This list is empty.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public int monthReceiver() {
@@ -210,4 +242,6 @@ public class Utilities {
     private final String ANSI_GREEN = "\u001B[32m";
     private final String ANSI_YELLOW = "\u001B[33m";
     private final String cinemaNameRegex = "^[a-zA-Z]{4,}(?: [a-zA-Z]+){0,2}$";
+
+
 }

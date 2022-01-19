@@ -1,8 +1,5 @@
 package Entities.Users;
 
-import Entities.Things.Bank.Branch;
-import Entities.Users.User;
-
 import java.util.List;
 
 public class President extends User {

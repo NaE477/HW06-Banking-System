@@ -22,7 +22,7 @@ abstract public class User {
         this.password = password;
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 

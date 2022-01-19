@@ -26,6 +26,20 @@ public class ClientsService implements Authentic<Client>, Findable<Client> {
         else return 0;
     }
 
+    public List<Client> findAllByBranch(Integer branchId){
+        return cr.readAllByBranch(branchId);
+    }
+
+    public Boolean existsInBranch(Integer branchId,Integer clientId){
+        List<Client> clients = cr.readAllByBranch(branchId);
+        for(Client client : clients){
+            if(client.getUserId() == clientId){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public User login(String username) {
         return cr.read(username);

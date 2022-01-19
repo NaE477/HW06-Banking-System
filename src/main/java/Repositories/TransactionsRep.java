@@ -1,7 +1,7 @@
 package Repositories;
 
-import Entities.Things.Status;
 import Entities.Things.Transaction;
+import Entities.Things.TransactionStatus;
 import Interfaces.ThingCRUD;
 
 import java.sql.Connection;
@@ -57,7 +57,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
             ps.setInt(4, transaction.getDes_account_id());
             ps.setInt(5, transaction.getBranch_id());
             ps.setInt(6, transaction.getBank_id());
-            ps.setString(7, transaction.getStatus().toString());
+            ps.setString(7, transaction.getTransactionStatus().toString());
             ps.setObject(8,transaction.getTransactionTime());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
@@ -70,8 +70,8 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
         return null;
     }
 
-    public List<Transaction> readByBranchId(Integer branchId) {
-        List<Transaction> transactions = new ArrayList<>();
+    public List<Object> readByBranchId(Integer branchId) {
+        List<Object> transactions = new ArrayList<>();
         String selectStmt = "SELECT * FROM transactions " +
                 " WHERE branch_id = ?;";
         try {
@@ -139,7 +139,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                         rs.getInt("srs_account_id"),
                         rs.getInt("des_account_id"),
                         rs.getDouble("amount"),
-                        Status.valueOf(rs.getString("status")),
+                        TransactionStatus.valueOf(rs.getString("status")),
                         rs.getObject("transaction_time", LocalDate.class)
                 );
             }
@@ -164,7 +164,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                                 rs.getInt("srs_account_id"),
                                 rs.getInt("des_account_id"),
                                 rs.getDouble("amount"),
-                                Status.valueOf(rs.getString("status")),
+                                TransactionStatus.valueOf(rs.getString("status")),
                                 rs.getObject("transaction_time", LocalDate.class)
                         )
                 );
@@ -182,7 +182,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                 "SET status = ? WHERE id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(updateStmt);
-            ps.setString(1, transaction.getStatus().toString());
+            ps.setString(1, transaction.getTransactionStatus().toString());
             ps.setInt(2, transaction.getId());
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {

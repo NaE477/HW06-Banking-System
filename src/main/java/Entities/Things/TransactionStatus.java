@@ -1,6 +1,6 @@
 package Entities.Things;
 
-public enum Status {
+public enum TransactionStatus {
     DONE,
     PENDING,
     CANCELLED

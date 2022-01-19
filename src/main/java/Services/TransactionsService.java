@@ -2,7 +2,6 @@ package Services;
 
 import Entities.Things.Transaction;
 import Interfaces.Findable;
-import Interfaces.ThingCRUD;
 import Repositories.TransactionsRep;
 
 import java.sql.Connection;
@@ -25,7 +24,7 @@ public class TransactionsService implements Findable<Transaction> {
         return tr.update(transaction);
     }
 
-    public List<Transaction> findAllByBranch(Integer branchId){
+    public List<Object> findAllByBranch(Integer branchId){
         return tr.readByBranchId(branchId);
     }
 

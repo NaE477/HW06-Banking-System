@@ -123,6 +123,32 @@ public class ClientsRep implements UserCRUD<Client> {
         return null;
     }
 
+    public List<Client> readAllByBranch(Integer branchId){
+        List<Client> clients = new ArrayList<>();
+        String readQuery = "SELECT * FROM clients " +
+                "INNER JOIN accounts a on clients.id = a.client_id " +
+                "WHERE branch_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(readQuery);
+            ps.setInt(1,branchId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                clients.add(new Client(
+                                rs.getInt("id"),
+                                rs.getString("firstname"),
+                                rs.getString("lastname"),
+                                rs.getString("username"),
+                                rs.getString("password")
+                        )
+                );
+            }
+            return clients;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public Integer update(Client client) {
         String updateStmt = "UPDATE clients " +

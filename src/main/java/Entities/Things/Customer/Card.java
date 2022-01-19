@@ -1,7 +1,5 @@
 package Entities.Things.Customer;
 
-import Entities.Things.Bank.Bank;
-
 import java.sql.Date;
 import java.time.YearMonth;
 
@@ -10,6 +8,7 @@ public class Card {
     private Account account;
     private YearMonth expDate;
     private String number;
+    private CardStatus cardStatus;
 
     public Card(int id, int cvv2, int firstPass, int secondPass, Account account, YearMonth expDate, String number) {
         this.id = id;
@@ -19,6 +18,7 @@ public class Card {
         this.account = account;
         this.expDate = expDate;
         this.number = number;
+        this.cardStatus = CardStatus.BLOCKED;
     }
 
     public Card(int cardId) {
@@ -79,5 +79,13 @@ public class Card {
 
     public void setExpDate(YearMonth expDate) {
         this.expDate = expDate;
+    }
+
+    public CardStatus getCardStatus() {
+        return cardStatus;
+    }
+
+    public void setCardStatus(CardStatus cardStatus) {
+        this.cardStatus = cardStatus;
     }
 }

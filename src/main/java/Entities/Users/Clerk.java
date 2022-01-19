@@ -1,8 +1,5 @@
 package Entities.Users;
 
-import Entities.Things.Bank.Branch;
-import Entities.Users.User;
-
 public class Clerk extends User {
     private int branch_id,president_id;
     private Double salary;
@@ -49,6 +46,8 @@ public class Clerk extends User {
         return "Clerk ID: " + super.getUserId() +
                 " First Name: " + super.getFirstname() +
                 " Last Name: " + super.getLastname() +
+                " Branch ID: " + branch_id +
+                " President ID: " + president_id +
                 " Salary=" + salary;
     }
 }
