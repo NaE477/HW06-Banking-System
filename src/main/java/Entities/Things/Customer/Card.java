@@ -21,6 +21,17 @@ public class Card {
         this.cardStatus = CardStatus.BLOCKED;
     }
 
+    public Card(int id, int cvv2, int firstPass, int secondPass, Account account, YearMonth expDate, String number, CardStatus cardStatus) {
+        this.id = id;
+        this.cvv2 = cvv2;
+        this.firstPass = firstPass;
+        this.secondPass = secondPass;
+        this.account = account;
+        this.expDate = expDate;
+        this.number = number;
+        this.cardStatus = cardStatus;
+    }
+
     public Card(int cardId) {
         this.id = cardId;
     }
@@ -73,8 +84,9 @@ public class Card {
         this.account = account;
     }
 
-    public Date getExpDate() {
-        return new Date(this.expDate.getYear(),this.expDate.getMonthValue(),5);
+    public YearMonth getExpDate() {
+        YearMonth expDate = YearMonth.of(this.expDate.getYear(),this.expDate.getMonthValue());
+        return expDate;
     }
 
     public void setExpDate(YearMonth expDate) {
@@ -87,5 +99,16 @@ public class Card {
 
     public void setCardStatus(CardStatus cardStatus) {
         this.cardStatus = cardStatus;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id +
+                " \n-CVV2: " + cvv2 +
+                " \n-First Pass: " + firstPass +
+                " \n-Second Pass:" + secondPass +
+                " \n-EXP. Date: " + expDate +
+                " \n-CardNumber: " + number +
+                " \n-Card Status: " + cardStatus;
     }
 }

@@ -51,8 +51,7 @@ public class AccountsRep implements ThingCRUD<Account> {
             ps.setInt(3,account.getBank().getId());
             ps.setInt(4,account.getBranch().getId());
             ps.setInt(5,account.getClient().getUserId());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -99,7 +98,10 @@ public class AccountsRep implements ThingCRUD<Account> {
     @Override
     public Account read(Integer accountId) {
         String selectStmt = "SELECT * FROM accounts " +
-                "WHERE id = ?;";
+                " INNER JOIN clients c on c.id = accounts.client_id " +
+                "INNER JOIN banks b on b.id = accounts.bank_id " +
+                "INNER JOIN branches b2 on b.id = b2.bank_id " +
+                "WHERE accounts.id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1, accountId);
@@ -109,15 +111,15 @@ public class AccountsRep implements ThingCRUD<Account> {
                         rs.getInt("id"),
                         rs.getString("accountnumber"),
                         new Client(
-                                rs.getInt("c.id"),
+                                rs.getInt(7),
                                 rs.getString("username"),
                                 rs.getString("password")
                         ),
                         new Bank(
-                                rs.getInt("b.id"),
+                                rs.getInt(12),
                                 rs.getString("bank_name")
                         ),
-                        new Branch(rs.getInt("b2.id")),
+                        new Branch(rs.getInt(14)),
                         rs.getDouble("balance")
                 );
             }
@@ -131,7 +133,10 @@ public class AccountsRep implements ThingCRUD<Account> {
     @Override
     public List<Account> readAll() {
         List<Account> accounts = new ArrayList<>();
-        String selectStmt = "SELECT * FROM accounts";
+        String selectStmt = "SELECT * FROM accounts " +
+                " INNER JOIN clients c on c.id = accounts.client_id " +
+                "INNER JOIN banks b on b.id = accounts.bank_id " +
+                "INNER JOIN branches b2 on b.id = b2.bank_id;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ResultSet rs = ps.executeQuery();
@@ -140,15 +145,15 @@ public class AccountsRep implements ThingCRUD<Account> {
                         rs.getInt("id"),
                         rs.getString("accountnumber"),
                         new Client(
-                                rs.getInt("c.id"),
+                                rs.getInt(7),
                                 rs.getString("username"),
                                 rs.getString("password")
                         ),
                         new Bank(
-                                rs.getInt("b.id"),
+                                rs.getInt(12),
                                 rs.getString("bank_name")
                         ),
-                        new Branch(rs.getInt("b2.id")),
+                        new Branch(rs.getInt(14)),
                         rs.getDouble("balance")
                         )
                 );
@@ -162,7 +167,11 @@ public class AccountsRep implements ThingCRUD<Account> {
 
     public List<Account> readAllByBranch(Integer branchId){
         List<Account> accounts = new ArrayList<>();
-        String selectStmt = "SELECT * FROM accounts WHERE branch_id = ?;";
+        String selectStmt = "SELECT * FROM accounts " +
+                "INNER JOIN clients c on c.id = accounts.client_id " +
+                "INNER JOIN banks b on b.id = accounts.bank_id " +
+                "INNER JOIN branches b2 on b.id = b2.bank_id " +
+                " WHERE branch_id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1,branchId);
@@ -172,15 +181,16 @@ public class AccountsRep implements ThingCRUD<Account> {
                                 rs.getInt("id"),
                                 rs.getString("accountnumber"),
                                 new Client(
-                                        rs.getInt("c.id"),
+                                        rs.getInt("client_id"),
                                         rs.getString("username"),
                                         rs.getString("password")
                                 ),
                                 new Bank(
-                                        rs.getInt("b.id"),
+                                        rs.getInt("bank_id"),
                                         rs.getString("bank_name")
                                 ),
-                                new Branch(rs.getInt("b2.id")),
+                                new Branch(rs.getInt("branch_id"),
+                                        rs.getString("branch_name")),
                                 rs.getDouble("balance")
                         )
                 );
@@ -204,18 +214,18 @@ public class AccountsRep implements ThingCRUD<Account> {
             ResultSet rs = ps.executeQuery();
             while (rs.next()){
                 accounts.add(new Account(
-                        clientId,
+                        rs.getInt(1),
                         rs.getString("accountnumber"),
                         new Client(
-                                rs.getInt("c.id"),
+                                rs.getInt(7),
                                 rs.getString("username"),
                                 rs.getString("password")
                         ),
                         new Bank(
-                                rs.getInt("b.id"),
+                                rs.getInt(12),
                                 rs.getString("bank_name")
                         ),
-                        new Branch(rs.getInt("b2.id")),
+                        new Branch(rs.getInt(14)),
                         rs.getDouble("balance")
                         )
                 );
@@ -234,11 +244,9 @@ public class AccountsRep implements ThingCRUD<Account> {
         try {
             PreparedStatement ps = connection.prepareStatement(updateStmt);
             ps.setDouble(1,account.getBalance());
-            ps.setInt(1,account.getId());
-            ResultSet rs = ps.getGeneratedKeys();
-            if(rs.next()) {
-                return rs.getInt(1);
-            }
+            ps.setInt(2,account.getId());
+            ps.executeUpdate();
+            return account.getId();
         } catch (SQLException e) {
             e.printStackTrace();
         }

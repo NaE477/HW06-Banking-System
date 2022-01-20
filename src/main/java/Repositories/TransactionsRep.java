@@ -4,10 +4,7 @@ import Entities.Things.Transaction;
 import Entities.Things.TransactionStatus;
 import Interfaces.ThingCRUD;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +52,11 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
             ps.setDouble(2, transaction.getCommission());
             ps.setInt(3, transaction.getSrc_account_id());
             ps.setInt(4, transaction.getDes_account_id());
-            ps.setInt(5, transaction.getBranch_id());
-            ps.setInt(6, transaction.getBank_id());
+            ps.setInt(5, transaction.getBank_id());
+            ps.setInt(6, transaction.getBranch_id());
             ps.setString(7, transaction.getTransactionStatus().toString());
             ps.setObject(8,transaction.getTransactionTime());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -86,7 +82,8 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                                 rs.getInt("src_account_id"),
                                 rs.getInt("des_account_id"),
                                 rs.getDouble("amount"),
-                                rs.getObject("transaction_time", LocalDate.class)
+                                TransactionStatus.valueOf(rs.getString("status")),
+                                rs.getObject("transaction_time", Timestamp.class)
                         )
                 );
             } return transactions;
@@ -114,7 +111,8 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                         rs.getInt("src_account_id"),
                         rs.getInt("des_account_id"),
                         rs.getDouble("amount"),
-                        rs.getObject("transaction_time", LocalDate.class)
+                        TransactionStatus.valueOf(rs.getString("status")),
+                        rs.getObject("transaction_time", Timestamp.class)
                 );
             } else return null;
         } catch (SQLException e) {
@@ -140,9 +138,99 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                         rs.getInt("des_account_id"),
                         rs.getDouble("amount"),
                         TransactionStatus.valueOf(rs.getString("status")),
-                        rs.getObject("transaction_time", LocalDate.class)
+                        rs.getObject("transaction_time", Timestamp.class)
                 );
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Transaction> readAllByClient(Integer clientId){
+        List<Transaction> transactions = new ArrayList<>();
+        String selectStmt = "SELECT * FROM transactions " +
+                "INNER JOIN transactiontocard t on transactions.id = t.transaction_id " +
+                "INNER JOIN accounts a on a.id = transactions.src_account_id and a.id = transactions.des_account_id " +
+                "INNER JOIN clients c on c.id = a.client_id" +
+                " WHERE client_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,clientId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                transactions.add(new Transaction(
+                        rs.getInt(1),
+                        rs.getInt(7),
+                        rs.getInt(6),
+                        rs.getInt(10),
+                        rs.getInt(4),
+                        rs.getInt(5),
+                        rs.getDouble(13),
+                        rs.getTimestamp(9)
+                ));
+            }
+            return transactions;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Transaction> readAllByAccountId(Integer accountId){
+        List<Transaction> transactions = new ArrayList<>();
+        String selectStmt = "SELECT * FROM transactiontocard" +
+                " INNER JOIN transactions t on t.id = transactiontocard.transaction_id" +
+                " WHERE account_id = ?;";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,accountId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()){
+                transactions.add(
+                        new Transaction(
+                                rs.getInt("id"),
+                                rs.getInt("branch_id"),
+                                rs.getInt("bank_id"),
+                                rs.getInt("src_account_id"),
+                                rs.getInt("des_account_id"),
+                                rs.getDouble(6),
+                                TransactionStatus.valueOf(rs.getString("status")),
+                                rs.getObject("transaction_time", Timestamp.class)
+                        )
+                );
+            }
+            return transactions;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public List<Transaction> readAllByAccountAndDate(Integer accountId, Timestamp from){
+        List<Transaction> transactions = new ArrayList<>();
+        String selectStmt = "SELECT * FROM transactiontocard " +
+                "INNER JOIN transactions t on t.id = transactiontocard.transaction_id" +
+                " WHERE account_id = ? " +
+                "AND transaction_time >= ? AND transaction_time < ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,accountId);
+            ps.setTimestamp(2,from);
+            ps.setTimestamp(3,new Timestamp(System.currentTimeMillis()));
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                transactions.add(new Transaction(
+                        rs.getInt("id"),
+                        rs.getInt("branch_id"),
+                        rs.getInt("bank_id"),
+                        rs.getInt("src_account_id"),
+                        rs.getInt("des_account_id"),
+                        rs.getDouble(6),
+                        TransactionStatus.valueOf(rs.getString("status")),
+                        rs.getObject("transaction_time", Timestamp.class)
+                ));
+            }
+            return transactions;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -165,7 +253,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                                 rs.getInt("des_account_id"),
                                 rs.getDouble("amount"),
                                 TransactionStatus.valueOf(rs.getString("status")),
-                                rs.getObject("transaction_time", LocalDate.class)
+                                rs.getObject("transaction_time", Timestamp.class)
                         )
                 );
             }
@@ -184,14 +272,11 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
             PreparedStatement ps = connection.prepareStatement(updateStmt);
             ps.setString(1, transaction.getTransactionStatus().toString());
             ps.setInt(2, transaction.getId());
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return transaction.getId();
     }
 
     @Override

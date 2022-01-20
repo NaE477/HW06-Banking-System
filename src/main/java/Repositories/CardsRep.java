@@ -8,10 +8,7 @@ import Entities.Things.Customer.CardStatus;
 import Entities.Users.Client;
 import Interfaces.ThingCRUD;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,18 +43,20 @@ public class CardsRep implements ThingCRUD<Card> {
 
     @Override
     public Integer insert(Card card) {
-        String insStmt = "INSERT INTO cards (id,card_number,first_pass,second_pass,exp_date,account_id,cvv2,card_status)" +
+        String insStmt = "INSERT INTO cards (card_number,first_pass,second_pass,exp_date,account_id,cvv2,card_status)" +
                 " VALUES (?,?,?,?,?,?,?) RETURNING id;";
         try {
+            Date expDate = new Date(card.getExpDate().getYear() - 1900,card.getExpDate().getMonthValue(),5);
+
             PreparedStatement ps = connection.prepareStatement(insStmt);
             ps.setString(1, card.getNumber());
-            ps.setString(2, null);
-            ps.setString(3, null);
-            ps.setDate(4, card.getExpDate());
+            ps.setString(2, String.valueOf(card.getFirstPass()));
+            ps.setString(3, "-11111");
+            ps.setDate(4, expDate);
             ps.setInt(5, card.getAccount().getId());
             ps.setString(6, String.valueOf(card.getCvv2()));
-            ps.setString(7,CardStatus.BLOCKED.toString());
-            ResultSet rs = ps.getGeneratedKeys();
+            ps.setObject(7,CardStatus.BLOCKED.toString());
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -122,8 +121,8 @@ public class CardsRep implements ThingCRUD<Card> {
                 " INNER JOIN accounts a on a.id = cards.account_id " +
                 " INNER JOIN clients c on c.id = a.client_id " +
                 " INNER JOIN banks b on b.id = a.bank_id " +
-                " INNER JOIN branches b2 on b2.id = a.branch_id" +
-                " WHERE id = ?;";
+                " INNER JOIN branches on branches.id = a.branch_id" +
+                " WHERE cards.id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1, cardId);
@@ -138,15 +137,15 @@ public class CardsRep implements ThingCRUD<Card> {
                                 rs.getInt("account_id"),
                                 rs.getString("accountnumber"),
                                 new Client(
-                                        rs.getInt("c.id"),
+                                        rs.getInt("client_id"),
                                         rs.getString("username"),
                                         rs.getString("password")
                                 ),
                                 new Bank(
-                                        rs.getInt("b.id")
+                                        rs.getInt(20)
                                 ),
                                 new Branch(
-                                        rs.getInt("b2.bank_id")),
+                                        rs.getInt(22)),
                                 rs.getDouble("balance")
                         ),
                         YearMonth.of(rs.getInt("year"), rs.getInt("month")),
@@ -222,7 +221,7 @@ public class CardsRep implements ThingCRUD<Card> {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Card(
-                        rs.getInt("cards.id"),
+                        rs.getInt(1),
                         Integer.parseInt(rs.getString("cvv2")),
                         Integer.parseInt(rs.getString("first_pass")),
                         Integer.parseInt(rs.getString("second_pass")),
@@ -230,19 +229,20 @@ public class CardsRep implements ThingCRUD<Card> {
                                 rs.getInt("account_id"),
                                 rs.getString("accountnumber"),
                                 new Client(
-                                        rs.getInt("c.id"),
+                                        rs.getInt(15),
                                         rs.getString("username"),
                                         rs.getString("password")
                                 ),
                                 new Bank(
-                                        rs.getInt("b.id")
+                                        rs.getInt(12)
                                 ),
                                 new Branch(
-                                        rs.getInt("b2.bank_id")),
+                                        rs.getInt(13)),
                                 rs.getDouble("balance")
                         ),
                         YearMonth.of(rs.getInt("year"), rs.getInt("month")),
-                        rs.getString("card_number")
+                        rs.getString("card_number"),
+                        CardStatus.valueOf(rs.getString("card_status"))
                 );
             }
 
@@ -267,13 +267,14 @@ public class CardsRep implements ThingCRUD<Card> {
             ResultSet rs = ps.executeQuery();
             while (rs.next()){
                 cards.add(new Card(
-                        rs.getInt("cards.id"),
+                        rs.getInt(1),
                         Integer.parseInt(rs.getString("cvv2")),
                         Integer.parseInt(rs.getString("first_pass")),
                         Integer.parseInt(rs.getString("second_pass")),
-                                new Account(rs.getInt("a.id")),
+                                new Account(rs.getInt(10)),
                                 YearMonth.of(rs.getInt("year"), rs.getInt("month")),
-                                rs.getString("card_number")
+                                rs.getString("card_number"),
+                        CardStatus.valueOf(rs.getString("card_status"))
                 ));
             }
             return cards;
@@ -285,7 +286,7 @@ public class CardsRep implements ThingCRUD<Card> {
 
     public Card readByNumber(String cardNumber){
         String selectStmt = "SELECT *," +
-                " DATE_PART('year',exp_date) AS year, " +
+                "  DATE_PART('year',exp_date) AS year," +
                 " DATE_PART('month',exp_date) AS month " +
                 " FROM cards " +
                 "INNER JOIN accounts a on a.id = cards.account_id" +
@@ -294,6 +295,46 @@ public class CardsRep implements ThingCRUD<Card> {
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setString(1,cardNumber);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return new Card(
+                        rs.getInt(1),
+                        Integer.parseInt(rs.getString("cvv2")),
+                        Integer.parseInt(rs.getString("first_pass")),
+                        Integer.parseInt(rs.getString("second_pass")),
+                        new Account(
+                                rs.getInt("account_id"),
+                                rs.getString("accountnumber"),
+                                new Client(
+                                        rs.getInt(15),
+                                        rs.getString("username"),
+                                        rs.getString("password")
+                                ),
+                                new Bank(
+                                        rs.getInt(12)
+                                ),
+                                new Branch(
+                                        rs.getInt(13)),
+                                rs.getDouble("balance")
+                        ),
+                        YearMonth.of(rs.getInt("year"), rs.getInt("month")),
+                        rs.getString("card_number"),
+                        CardStatus.valueOf(rs.getString("card_status"))
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Card readByAccount(Integer accountId){
+        String selectStmt = "SELECT * FROM cards " +
+                " INNER JOIN accounts a on a.id = cards.account_id" +
+                " WHERE account_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectStmt);
+            ps.setInt(1,accountId);
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
                 return new Card(
@@ -367,8 +408,10 @@ public class CardsRep implements ThingCRUD<Card> {
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
             ps.setInt(1,accountId);
-            if(ps.getResultSet().next()){
-                return ps.getResultSet().getInt("cards.id");
+            ps.setInt(2,branchId);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -383,8 +426,9 @@ public class CardsRep implements ThingCRUD<Card> {
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
             ps.setInt(1,accountId);
-            if (ps.getResultSet().next()){
-                return ps.getResultSet().getInt("id");
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()){
+                return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -396,8 +440,9 @@ public class CardsRep implements ThingCRUD<Card> {
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
             ps.setInt(1,cardId);
-            if(ps.getResultSet().next()){
-                return ps.getResultSet().getString("card_number");
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return rs.getString("card_number");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -409,8 +454,9 @@ public class CardsRep implements ThingCRUD<Card> {
         try {
             PreparedStatement ps = connection.prepareStatement(delStmt);
             ps.setString(1,cardNumber);
-            if(ps.getResultSet().next()){
-                return ps.getResultSet().getInt("id");
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return rs.getInt("id");
             }
         } catch (SQLException e) {
             e.printStackTrace();

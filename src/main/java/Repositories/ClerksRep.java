@@ -49,8 +49,7 @@ public class ClerksRep implements UserCRUD<Clerk> {
             ps.setDouble(5, clerk.getSalary());
             ps.setInt(6, clerk.getBranch_id());
             ps.setInt(7, clerk.getPresident_id());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -176,8 +175,7 @@ public class ClerksRep implements UserCRUD<Clerk> {
             ps.setString(3, clerk.getLastname());
             ps.setDouble(4, clerk.getSalary());
             ps.setString(5, clerk.getUsername());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -195,8 +193,10 @@ public class ClerksRep implements UserCRUD<Clerk> {
                 PreparedStatement ps = connection.prepareStatement(passChangeStmt);
                 ps.setString(1, password);
                 ps.setString(2, username);
-                int id = ps.executeUpdate();
-                    return id;
+                ResultSet rs = ps.executeQuery();
+                if(rs.next()){
+                    return rs.getInt("id");
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }

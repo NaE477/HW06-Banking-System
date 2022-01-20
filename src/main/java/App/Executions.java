@@ -2,9 +2,13 @@ package App;
 
 import App.HandyClasses.ConClass;
 import App.HandyClasses.Utilities;
+import Entities.Things.Bank.Bank;
 import Entities.Things.Bank.Branch;
 import Entities.Things.Customer.Account;
 import Entities.Things.Customer.Card;
+import Entities.Things.Customer.CardStatus;
+import Entities.Things.Transaction;
+import Entities.Things.TransactionStatus;
 import Entities.Users.Clerk;
 import Entities.Users.President;
 import Entities.Users.Client;
@@ -13,6 +17,9 @@ import Services.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalTime;
+import java.time.Month;
 import java.time.YearMonth;
 import java.util.*;
 
@@ -30,7 +37,7 @@ public class Executions {
     static BranchesService branchesService = new BranchesService(connection);
     static CardsService cardsService = new CardsService(connection);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         System.out.println("Welcome to bank application.");
         User user;
         while (true) {
@@ -47,7 +54,7 @@ public class Executions {
         }
     }
 
-    public static User entry() {
+    public static User entry() throws SQLException {
         while (true) {
             System.out.print("Press L/l to Login,or E/e to Exit: ");
             String opt = scanner.nextLine().toUpperCase(Locale.ROOT);
@@ -62,11 +69,14 @@ public class Executions {
         }
     }
 
-    public static User login() {
+    public static User login() throws SQLException {
         System.out.print("Username: ");
         String username = scanner.nextLine();
         System.out.print("Password: ");
         String password = scanner.nextLine();
+        if(username.equals("admin") && password.equals("admin")){
+            adminSection();
+        }
         if (clerksService.authentication(username, password)) {
             return clerksService.login(username);
         } else if (presidentsService.authentication(username, password)) {
@@ -142,22 +152,23 @@ public class Executions {
         //getting the branch
         President president = presidentsService.findById(clerk.getPresident_id());
         Branch thisBranch = branchesService.findById(president.getBranch_id());
-        int bankId = thisBranch.getBank().getId();
+        Bank thisBank = banksService.findById(thisBranch.getBank().getId());
         try {
-            System.out.println("Welcome " + clerk.getFirstname() + " " + clerk.getLastname());
+            utilities.printGreen("Welcome " + clerk.getFirstname() + " " + clerk.getLastname());
             System.out.println("What do you wanna do?");
             label:
             while (true) {
                 System.out.println("1-Create Client");
-                System.out.println("2-Remove Client");
-                System.out.println("3-View Clients in this Branch");
+                System.out.println("2-View Clients in this Branch");
+                System.out.println("3-View All Clients ( ͡❛ ͜ʖ ͡❛)");
                 System.out.println("4-Open Account");
                 System.out.println("5-Close Account");
                 System.out.println("6-View Accounts in this Branch");
                 System.out.println("7-Create Card for an Account");
-                System.out.println("8-View Transactions");
-                System.out.println("9-View Profile");
-                System.out.println("10-Exit");
+                System.out.println("8-Change Password For Card and Open It");
+                System.out.println("9-View Transactions");
+                System.out.println("10-View Profile");
+                System.out.println("11-Exit");
                 String opt = scanner.nextLine();
                 switch (opt) {
                     case "1":
@@ -168,49 +179,52 @@ public class Executions {
                         String username = utilities.usernameReceiver();
                         System.out.print("Password: ");
                         String password = scanner.nextLine();
-                        Integer newClientId = clientsService.signup(new Client(
-                                0, firstName, lastName, username, password));
-                        utilities.printGreen("Client was Created with ID: " + newClientId);
+                        Client newClient = new Client(
+                                0, firstName, lastName, username, password);
+                        Integer newClientId = clientsService.signup(newClient);
+                        newClient.setUserId(newClientId);
+                        Account newAccountForClient = new Account(0,utilities.accountNumberMaker(),newClient,thisBank,thisBranch,20.0 );
+                        Integer newAccountIDForClient = accountsService.open(newAccountForClient);
+                        utilities.printGreen("Client was Created with ID: " + newClientId + " and Account ID: " + newAccountIDForClient);
                         break;
                     case "2":
-                        System.out.print("Enter Client ID: ");
-                        int clientId = utilities.intReceiver();
-                        if (clientsService.remove(clientId) != 0) {
-                            if (clientsService.existsInBranch(president.getBranch_id(), clientId))
-                                utilities.printGreen("Client with ID: " + clientId + " deleted.");
-                            else utilities.printRed("ID INVALID");
-                        } else utilities.printRed("ID INVALID");
+                        List<Client> clients = clientsService.findAllByBranch(thisBranch.getId());
+                        utilities.iterateThrough(clients);
                         break;
                     case "3":
-                        List<Client> clients = clientsService.findAllByBranch(clerk.getBranch_id());
-                        utilities.iterateThrough(clients);
+                        List<Client> allClients = clientsService.findAll();
+                        utilities.iterateThrough(allClients);
                         break;
                     case "4":
                         System.out.print("Enter Client's ID: ");
-                        int newAccountClientId = utilities.intReceiver();
-                        if (clientsService.existsInBranch(president.getBranch_id(), newAccountClientId)) {
-                            Account newAccount = new Account(0,
-                                    utilities.accountNumberMaker(),
-                                    clientsService.findById(newAccountClientId),
-                                    banksService.findById(bankId),
-                                    thisBranch, 20.0
-                            );
-                            accountsService.open(newAccount);
-                        } else utilities.printRed("ID INVALID.");
+                        int newAccountsClientId = utilities.intReceiver();
+                            if(!accountsService.existsForClient(newAccountsClientId)) {
+                                Account newAccount = new Account(0,
+                                        utilities.accountNumberMaker(),
+                                        clientsService.findById(newAccountsClientId),
+                                        thisBank,
+                                        thisBranch, 20.0
+                                );
+                                Integer newAccountId = accountsService.open(newAccount);
+                                utilities.printGreen("Account was created with ID: " + newAccountId);
+                            } else utilities.printRed("ID INVALID.");
                         break;
                     case "5":
                         System.out.print("Enter Account's ID: ");
                         int accountId = utilities.intReceiver();
-                        if (accountsService.existsInBranch(president.getBranch_id(), accountId)) {
+                        if (accountsService.existsInBranch(thisBranch.getId(), accountId)) {
                             Account accountToCloseObj = new Account(accountId);
+                            if(cardsService.hasCard(accountId)) {
+                                Integer deletedCardsIds = cardsService.removeByAccountAndBranch(accountId, clerk.getBranch_id());
+                                accountsService.closeAccount(accountToCloseObj);
+                                utilities.printRed("Account deleted successfully and Card with ID: " + deletedCardsIds + " Been deleted.");
+                            }
                             accountsService.closeAccount(accountToCloseObj);
-                            utilities.printRed("Account deleted successfully.");
-                            Integer deletedCardsIds = cardsService.removeByAccountAndBranch(accountId, clerk.getBranch_id());
-                            utilities.printGreen("Account deleted successfully and Card with ID: " + deletedCardsIds  + " Been deleted.");
+                            utilities.printRed("Account deleted successfully and had no Card");
                         } else utilities.printRed("ID INVALID");
                         break;
                     case "6":
-                        List<Account> accounts = accountsService.findAllByBranch(clerk.getBranch_id());
+                        List<Account> accounts = accountsService.findAllByBranch(thisBranch.getId());
                         utilities.iterateThrough(accounts);
                         break;
                     case "7":
@@ -219,22 +233,62 @@ public class Executions {
                         if (accountsService.exists(accountIdForCard)) {
                             Card card = new Card(0,
                                     utilities.cvv2Generator(),
-                                    0, 0,
+                                    1234, 0,
                                     accountsService.findById(accountIdForCard),
                                     YearMonth.now().plusYears(5),
                                     utilities.cardNumberGenerator()
                             );
-                            cardsService.createNew(card);
+                            Integer newCardID = cardsService.createNew(card);
+                            card.setId(newCardID);
+                            utilities.printGreen("Card was created with" +
+                                    "\n-ID: " + card.getId() +
+                                    "\n- CARD NUMBER: " + card.getNumber() +
+                                    "\n- First Pass: " + card.getFirstPass() +
+                                    "\n CVV2: " + card.getCvv2() +
+                                    "\n EXP. Date: " + card.getExpDate().toString());
                         } else utilities.printRed("ID INVALID.");
                         break;
                     case "8":
+                        System.out.print("Enter Card ID or Card Number: ");
+                        Card card;
+                        String numberOrId = scanner.nextLine();
+                        if(numberOrId.length() != 12){
+                            int cardId = Integer.parseInt(numberOrId);
+                            if(cardsService.exists(cardId)){
+                                card = cardsService.findById(cardId);
+                            }
+                            else {
+                                utilities.printRed("Card ID Invalid.");
+                                break;
+                            }
+                        }
+                        else{
+                            if(cardsService.cardNumExists(numberOrId)){
+                                card = cardsService.findByNumber(numberOrId);
+                            }
+                            else {
+                                utilities.printRed("Card Number Invalid");
+                                break;
+                            }
+                        }
+                        System.out.print("First Password: ");
+                        int firstPass = utilities.fourDigitsReceiver();
+                        System.out.print("Second Password: ");
+                        int secondPass = utilities.sixDigitReceiver();
+                        card.setFirstPass(firstPass);
+                        card.setSecondPass(secondPass);
+                        card.setCardStatus(CardStatus.OPEN);
+                        cardsService.modifyPassAndStatus(card);
+                        utilities.printGreen("Card Password and Status are now changed and can be given to Client.");
+                        break;
+                    case "9":
                         List<Object> transactions = transactionsService.findAllByBranch(clerk.getBranch_id());
                         utilities.iterateThrough(transactions);
                         break;
-                    case "9":
+                    case "10":
                         utilities.printGreen(clerk.toString());
                         break;
-                    case "10":
+                    case "11":
                         utilities.printGreen("Goodbye");
                         break label;
                     default:
@@ -252,7 +306,6 @@ public class Executions {
     //=====================================================================
     public static void clientSection(Client client) {
         try {
-
             System.out.println("Welcome " + client.getFirstname() + " " + client.getLastname());
             System.out.println("What do you wanna do?");
             label:
@@ -261,8 +314,10 @@ public class Executions {
                 System.out.println("2-View Cards");
                 System.out.println("3-Remove Account");
                 System.out.println("4-Remove Card");
-                System.out.println("5-Card Section");
-                System.out.println("6-Exit");
+                System.out.println("5-View Transactions");
+                System.out.println("6-Card Section");
+                System.out.println("7-View Profile");
+                System.out.println("8-Exit");
                 String opt = scanner.nextLine();
                 switch (opt) {
                     case "1":
@@ -272,61 +327,338 @@ public class Executions {
                     case "2":
                         List<Card> cards = cardsService.findAllByClient(client.getUserId());
                         utilities.iterateThrough(cards);
+                        Thread.sleep(1000);
                         break;
                     case "3":
                         System.out.println("Enter Account ID: ");
                         int accountId = utilities.intReceiver();
-                        Account account = new Account(accountId);
-                        if (accountsService.existsForClient(accountId)) {
-                            accountsService.closeAccount(account);
-                            cardsService.removeByAccount(accountId);
+                        if (accountsService.existsForClient(client.getUserId(),accountId)) {
+                            Account account = accountsService.findById(accountId);
                             Card deletedCard = cardsService.findById(accountId);
-                            cardsService.removeByAccount(accountId);
+                            cardsService.removeByAccountId(accountId);
+                            accountsService.closeAccount(account);
                             utilities.printGreen("Account Closed,Card with Number: " + deletedCard.getNumber() + " Been Deleted with it.");
-                        } else System.out.println("ID INVALID");
+                        } else utilities.printRed("ID INVALID");
                         break;
                     case "4":
                         System.out.print("Enter Card Number or Card ID: ");
                         String cardOrId = scanner.nextLine();
                         if (cardOrId.length() != 12) {
                             Integer cardId = Integer.parseInt(cardOrId);
-                            if (cardsService.existsForClient(client.getUserId(),cardId)){
+                            if (cardsService.existsForClient(client.getUserId(), cardId)) {
                                 String deletedCardNumber = cardsService.removeById(cardId);
                                 utilities.printGreen("Card with Number: " + deletedCardNumber + " Been Deleted.");
                             } else utilities.printRed("INVALID ID/CARD NUMBER");
                         } else {
                             Integer cardId = cardsService.findByNumber(cardOrId).getId();
-                            if (cardsService.existsForClient(client.getUserId(),cardId)) {
+                            if (cardsService.existsForClient(client.getUserId(), cardId)) {
                                 Integer deletedCardId = cardsService.removeByCardNumber(cardOrId);
                                 utilities.printGreen("Card with ID: " + deletedCardId + " Been Deleted");
                             }
                         }
                         break;
                     case "5":
-                        List<Card> clientCards = cardsService.findAllByClient(client.getUserId());
-                        utilities.iterateThrough(clientCards);
-                        System.out.println("Choose Card ID you want to Enter: ");
-                        Integer cardId = utilities.intReceiver();
-                        if(cardsService.existsForClient(client.getUserId(),cardId)){
-                            Card card = cardsService.findById(cardId);
-
-                        }
+                        List<Transaction> transactions = transactionsService.findAllByClient(client.getUserId());
+                        utilities.iterateThrough(transactions);
                         break;
                     case "6":
+                        List<Card> clientCards = cardsService.findAllByClient(client.getUserId());
+                        utilities.iterateThrough(clientCards);
+                        System.out.println("Enter Card Number you want to Enter: ");
+                        String cardNumber = scanner.nextLine();
+                        Card card;
+                        if(cardNumber.length() != 12){
+                            utilities.printRed("Enter a 12 digit Card Number");
+                            break;
+                        }
+                        else{
+                            if(cardsService.cardNumExists(cardNumber)){
+                                card = cardsService.findByNumber(cardNumber);
+                            }
+                            else {
+                                System.out.println("Card Number Invalid");
+                                break;
+                            }
+                        }
+                        if(cardsService.cardBelongsToClient(card,client)) {
+                            cardSection(card);
+                        }
+                        else utilities.printRed("Card Number Invalid");
+                        break;
+                    case "7":
+                        utilities.printGreen(client.toString());
+                        break;
+                    case "8":
                         utilities.printGreen("Goodbye");
                         break label;
                     default:
-                        try {
-                            utilities.printRed("Choose an Option!");
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        utilities.printRed("Choose an Option!");
                 }
+            }
+        } catch (InterruptedException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //=====================================================================
+    //==============================Card Section===========================
+    //=====================================================================
+
+    public static void cardSection(Card card) {
+        try {
+            label:
+            while (true) {
+                System.out.print("Enter First Pass for Card: ");
+                int firstPassForAuth = utilities.fourDigitsReceiver();
+                if (cardsService.firstPassAuthenticate(card.getId(), firstPassForAuth)) {
+                    if (card.getSecondPass() == -11111) {
+                        System.out.println("Please set your passwords: ");
+                        System.out.print("First Password: ");
+                        Integer firstPass = utilities.fourDigitsReceiver();
+                        System.out.print("Second Password: ");
+                        Integer secondPass = utilities.sixDigitReceiver();
+                        card.setFirstPass(firstPass);
+                        card.setSecondPass(secondPass);
+                        card.setCardStatus(CardStatus.OPEN);
+                        cardsService.modifyPassAndStatus(card);
+                        utilities.printGreen("Card Password Changed and is Open now.");
+                    }
+                    if (card.getCardStatus().equals(CardStatus.BLOCKED)) {
+                        utilities.printRed("Your Card is Blocked,an employee can open it.");
+                    } else {
+                        Account account = accountsService.findById(card.getAccount().getId());
+                        Bank bank = banksService.findById(account.getBank().getId());
+                        Branch branch = branchesService.findById(account.getBranch().getId());
+                        Client client = clientsService.findById(account.getClient().getUserId());
+                        while (true) {
+                            System.out.println("Welcome to Card Section,Everything is ok now.");
+                            System.out.println("What do you want to do?");
+                            System.out.println("1-Make a Transition");
+                            System.out.println("2-Change Passwords");
+                            System.out.println("3-View Transactions");
+                            System.out.println("4-View Transactions By Date");
+                            System.out.println("5-Exit");
+                            String opt = scanner.nextLine();
+                            switch (opt) {
+                                case "1":
+                                    transactionSection(card);
+                                    break;
+                                case "2":
+                                    System.out.print("New First Password: ");
+                                    int firstPass = utilities.fourDigitsReceiver();
+                                    System.out.print("New Second Password: ");
+                                    int secondPass = utilities.sixDigitReceiver();
+                                    card.setFirstPass(firstPass);
+                                    card.setSecondPass(secondPass);
+                                    cardsService.modifyPassAndStatus(card);
+                                    utilities.printGreen("Passwords were changed successfully.");
+                                    break;
+                                case "3":
+                                    List<Transaction> transactions = transactionsService.findAllByAccount(card.getAccount().getId());
+                                    utilities.iterateThrough(transactions);
+                                    break;
+                                case "4":
+                                    int month = utilities.monthReceiver();
+                                    int day = utilities.dayReceiver(month);
+                                    int hour = utilities.hourReceiver();
+                                    int minute = utilities.minuteReceiver();
+                                    Timestamp from = new Timestamp(2022, month, day, hour, minute, 0, 0);
+                                    List<Transaction> fromTransactions = transactionsService.findAllByCardAndDate(card.getAccount().getId(), from);
+                                    break;
+                                case "5":
+                                    break label;
+                                default:
+                                    utilities.printRed("Choose an Option.");
+                            }
+                        }
+                    }
+
+                } else System.out.println("Wrong Password.");
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
+    //=====================================================================
+    //==========================Transaction Section========================
+    //=====================================================================
 
+    public static void transactionSection(Card card){
+        try {
+            Account thisAccount = accountsService.findById(card.getAccount().getId());
+            Account destinationAccount;
+            Bank bank = banksService.findById(thisAccount.getBank().getId());
+            Branch branch = branchesService.findById(thisAccount.getBranch().getId());
+            Client client = clientsService.findById(thisAccount.getClient().getUserId());
+
+            double accountBalance = thisAccount.getBalance();
+            String cardNumber = card.getNumber();
+
+            boolean flag = false;
+            System.out.println("Welcome to Transaction Section.");
+            System.out.println("Fill Below fields.");
+            while(true) {
+                System.out.print("Destination Card Number: ");
+                String desCardNum = utilities.twelveDigitReceiver();
+                Card destinationCard;
+                if( !(cardsService.cardNumAvailable(desCardNum)) || desCardNum.equals(cardNumber) ){
+                    utilities.printRed("Card Number is unavailable!");
+                    break;
+                }
+                else {
+                    destinationCard = cardsService.findByNumber(desCardNum);
+                    destinationAccount = accountsService.findById(destinationCard.getAccount().getId());
+                }
+                System.out.println("Amount: ");
+                Double amount = 0.0;
+                while (true) {
+                     amount = utilities.doubleReceiver();
+                    if(amount+600 > accountBalance){
+                        System.out.println("موجودی کافی نیست");
+                        System.out.print("مقدار کمتر وارد کنید");
+                    }
+                    else break;
+                }
+                Transaction transaction = new Transaction(
+                        0,branch.getId(),bank.getId()
+                        ,card.getAccount().getId(),
+                        destinationCard.getAccount().getId()
+                        ,amount, TransactionStatus.PENDING
+                        ,new Timestamp(System.currentTimeMillis()));
+                int transactionId = transactionsService.makeNew(transaction);
+                transaction.setId(transactionId);
+                utilities.printGreen("Transaction with ID: " + transactionId + " was made");
+
+                int count = 0;
+                while (true) {
+                    System.out.println("Second Password: ");
+                    int secondPass = utilities.sixDigitReceiver();
+                    System.out.print("CVV2: ");
+                    int cvv2 = utilities.threeDigitsReceiver();
+                    System.out.print("Exp. Year: ");
+                    int expYear = utilities.intReceiver();
+                    System.out.print("Exp. Month: ");
+                    int expMonth = utilities.intReceiver();
+                    YearMonth expDateEntered = YearMonth.of(expYear,expMonth);
+                    if(card.getSecondPass() == secondPass && card.getCvv2() == cvv2 &&
+                    card.getExpDate().equals(expDateEntered)){
+                        flag = true;
+                        break;
+                    }
+                    else{
+                        count++;
+                        System.out.println("Wrong initials. Card will be blocked after 3 wrong attempts. Attempt " + count + "/3");
+                    }
+                    if(count == 3) {
+                        transaction.setStatus(TransactionStatus.CANCELLED);
+                        int canceledTransaction = transactionsService.getDone(transaction);
+                        utilities.printRed("Transaction " + canceledTransaction + " got Cancelled!\n" +
+                                "Your Card is blocked till a Clerk Opens it again.");
+                        flag = false;
+                        break;
+                    }
+                }
+                if(flag){
+                    transaction.setStatus(TransactionStatus.DONE);
+                    int preformedTransactionId = transactionsService.getDone(transaction);
+                    thisAccount.setBalance(accountBalance - amount - 600);
+                    destinationAccount.setBalance(destinationAccount.getBalance() + amount);
+                    accountsService.doTransaction(thisAccount);
+                    accountsService.doTransaction(destinationAccount);
+                    utilities.printGreen("Transaction " + preformedTransactionId + " Done , " + amount.intValue() + "was withdrawn from your account with ID:" + thisAccount.getId());
+                }
+                else {
+                    System.out.println("Wrong initials!!");
+                }
+                break;
+            }
+        }
+        catch (InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+
+
+
+    //++++++++++++++++++++++++++++++Secret+++++++++++++++++++++++++++++
+    //+++++++++++++++++++++++++++Admin Section+++++++++++++++++++++++++
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public static void adminSection() throws SQLException {
+        System.out.println("Bank or Branch? (b/br)");
+        String bankOrBranch = scanner.nextLine();
+        if(bankOrBranch.equals("b")){
+            System.out.println("Bank Name: ");
+            String bankName = scanner.nextLine();
+            System.out.println("Branch Name: ");
+            String branchName = scanner.nextLine();
+            Bank bank = new Bank(bankName);
+            Integer bankId = banksService.createNew(bank);
+            try {
+                utilities.printGreen("Bank with ID " + bankId + " Created.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            bank.setId(bankId);
+            Branch newBranch = new Branch(0,bank,branchName);
+            Integer branchId = branchesService.createNew(newBranch);
+            try {
+                utilities.printGreen("Branch with ID " + branchId + " Created.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.print("President First Name: ");
+            String presidentFirstName = scanner.nextLine();
+            System.out.print("Last Name: ");
+            String presidentLastName = scanner.nextLine();
+            String username = utilities.usernameReceiver();
+            System.out.print("Password: ");
+            String password = scanner.nextLine();
+            System.out.print("Salary: " );
+            double salary = utilities.doubleReceiver();
+            President president = new President(0,presidentFirstName,presidentLastName,username,password,branchId,salary);
+            Integer presidentId = presidentsService.signup(president);
+            try {
+                utilities.printGreen("President with ID " + presidentId + " Created.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(bankOrBranch.equals("br")){
+            List<Bank> banks = banksService.findAll();
+            utilities.iterateThrough(banks);
+            System.out.println("Enter bank ID: ");
+            int bankId = utilities.intReceiver();
+            if (banksService.exists(bankId)) {
+                Bank newBank = banksService.findById(bankId);
+                System.out.println("Branch Name: ");
+                String branchName = scanner.nextLine();
+                Branch branch = new Branch(0,newBank,branchName);
+                Integer branchId = branchesService.createNew(branch);
+                try {
+                    utilities.printGreen("Branch with ID " + branchId + " Created.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.print("President First Name: ");
+                String presidentFirstName = scanner.nextLine();
+                System.out.print("Last Name: ");
+                String presidentLastName = scanner.nextLine();
+                String username = utilities.usernameReceiver();
+                System.out.print("Password: ");
+                String password = scanner.nextLine();
+                System.out.print("Salary: " );
+                double salary = utilities.doubleReceiver();
+                President president = new President(0,presidentFirstName,presidentLastName,username,password,branchId,salary);
+                Integer presidentId = presidentsService.signup(president);
+                try {
+                    utilities.printGreen("President with ID " + presidentId + " Created.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            else System.out.println("Bank ID Invalid.");
+        }
+    }
 
 }

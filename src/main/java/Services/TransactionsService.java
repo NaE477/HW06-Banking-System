@@ -1,19 +1,27 @@
 package Services;
 
 import Entities.Things.Transaction;
+import Entities.Things.TransactionStatus;
+import Entities.Things.TransactionType;
 import Interfaces.Findable;
+import Repositories.TransactionToCardRep;
 import Repositories.TransactionsRep;
 
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class TransactionsService implements Findable<Transaction> {
     Connection connection;
     TransactionsRep tr;
+    TransactionToCardRep ttcr;
 
     public TransactionsService(Connection connection) {
         this.connection = connection;
         tr = new TransactionsRep(this.connection);
+        ttcr = new TransactionToCardRep(this.connection);
     }
 
     public Integer makeNew(Transaction transaction){
@@ -21,11 +29,28 @@ public class TransactionsService implements Findable<Transaction> {
     }
 
     public Integer getDone(Transaction transaction){
-        return tr.update(transaction);
+        Integer updatedTransaction = tr.update(transaction);
+        if(transaction.getTransactionStatus() == TransactionStatus.DONE) {
+            ttcr.insertDes(transaction, TransactionType.WITHDRAW);
+            ttcr.insertSrc(transaction,TransactionType.DEPOSIT);
+        }
+        return updatedTransaction;
     }
 
     public List<Object> findAllByBranch(Integer branchId){
         return tr.readByBranchId(branchId);
+    }
+
+    public List<Transaction> findAllByAccount(Integer accountId){
+        return tr.readAllByAccountId(accountId);
+    }
+
+    public List<Transaction> findAllByCardAndDate(Integer cardId, Timestamp from){
+        return tr.readAllByAccountAndDate(cardId,from);
+    }
+
+    public List<Transaction> findAllByClient(Integer clientId){
+        return tr.readAllByClient(clientId);
     }
 
     @Override

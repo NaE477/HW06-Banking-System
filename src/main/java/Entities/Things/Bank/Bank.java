@@ -8,6 +8,9 @@ public class Bank {
         this.id = id;
         this.name = name;
     }
+    public Bank(String name){
+        this.name = name;
+    }
 
     public Bank(int bankId) {
         this.id = bankId;
@@ -27,5 +30,11 @@ public class Bank {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id +
+                " " + name;
     }
 }

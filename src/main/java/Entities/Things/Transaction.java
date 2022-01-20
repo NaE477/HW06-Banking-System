@@ -1,5 +1,6 @@
 package Entities.Things;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 public class Transaction {
@@ -7,9 +8,37 @@ public class Transaction {
     private double amount;
     private final double commission = 600.0;
     private TransactionStatus status;
-    private LocalDate transactionTime;
+    private Timestamp transactionTime;
 
-    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,LocalDate transactionTime) {
+    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, double amount, TransactionStatus status, Timestamp transactionTime) {
+        this.id = id;
+        this.branch_id = branch_id;
+        this.bank_id = bank_id;
+        this.src_account_id = src_account_id;
+        this.des_account_id = des_account_id;
+        this.amount = amount;
+        this.status = status;
+        this.transactionTime = transactionTime;
+    }
+
+    public Transaction(int id,int src_account_id,int des_account_id,double amount,TransactionStatus status,Timestamp transactionTime){
+        this.id = id;
+        this.src_account_id = src_account_id;
+        this.des_account_id = des_account_id;
+        this.amount = amount;
+        this.status = status;
+        this.transactionTime = transactionTime;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
+
+    public Transaction(int id, int branch_id, int bank_id, int card_id, int src_account_id, int des_account_id, Double amount, Timestamp transactionTime) {
         this.id = id;
         this.branch_id = branch_id;
         this.bank_id = bank_id;
@@ -20,7 +49,7 @@ public class Transaction {
         this.transactionTime = transactionTime;
     }
 
-    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,TransactionStatus status,LocalDate localDate) {
+    public Transaction(int id, int branch_id, int bank_id, int src_account_id, int des_account_id, Double amount,TransactionStatus status,Timestamp transactionTime) {
         this.id = id;
         this.branch_id = branch_id;
         this.bank_id = bank_id;
@@ -28,6 +57,7 @@ public class Transaction {
         this.des_account_id = des_account_id;
         this.amount = amount;
         this.status = status;
+        this.transactionTime = transactionTime;
     }
 
     public int getId() {
@@ -90,15 +120,14 @@ public class Transaction {
         this.status = status;
     }
 
-    public LocalDate getTransactionTime() {
+    public Timestamp getTransactionTime() {
         return transactionTime;
     }
 
-    public void setTransactionTime(LocalDate transactionTime) {
+    public void setTransactionTime(Timestamp transactionTime) {
         this.transactionTime = transactionTime;
     }
 
-    @Override
     public String toString() {
         return "Transaction ID: " + id +
                 " Branch ID: " + branch_id +

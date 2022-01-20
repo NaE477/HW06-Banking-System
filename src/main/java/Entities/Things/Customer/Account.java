@@ -72,4 +72,13 @@ public class Account {
         this.balance = balance;
     }
 
+    @Override
+    public String toString() {
+        return "ID: " + id +
+                " Account Number: "  + accountNumber +
+                " Owner: " + client.getUsername() +
+                " Bank: " + bank.getName() +
+                " Branch: " + branch.getBranch_name() +
+                " Balance: " + balance.toString();
+    }
 }

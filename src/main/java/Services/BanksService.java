@@ -17,6 +17,9 @@ public class BanksService implements Findable<Bank>, AdminPermissionOnly<Bank> {
         this.connection = connection;
         br = new BanksRep(connection);
     }
+    public Boolean exists(Integer bankId){
+        return findById(bankId) != null;
+    }
 
     @Override
     public Bank findById(Integer bankId) {

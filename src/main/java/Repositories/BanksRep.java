@@ -40,8 +40,7 @@ public class BanksRep implements ThingCRUD<Bank> {
         try {
             PreparedStatement ps = connection.prepareStatement(insertStmt);
             ps.setString(1,bank.getName());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -83,7 +82,7 @@ public class BanksRep implements ThingCRUD<Bank> {
             if(rs.next()){
                 return new Bank(
                         rs.getInt("id"),
-                        rs.getString("name")
+                        rs.getString("bank_name")
                 );
             }
         } catch (SQLException e) {
@@ -102,7 +101,7 @@ public class BanksRep implements ThingCRUD<Bank> {
             while(rs.next()){
                  banks.add(new Bank(
                         rs.getInt("id"),
-                        rs.getString("name"))
+                        rs.getString("bank_name"))
                 );
             }
             return banks;

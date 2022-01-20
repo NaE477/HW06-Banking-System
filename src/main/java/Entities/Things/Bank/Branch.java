@@ -14,7 +14,7 @@ public class Branch {
     private List<Clerk> clerks;
     private List<Account> accounts;
 
-    public Branch(int id, Bank bank, President president,String branch_name) {
+    public Branch(int id, Bank bank,String branch_name) {
         this.id = id;
         this.bank = bank;
         this.president = president;
@@ -23,6 +23,11 @@ public class Branch {
 
     public Branch(int branchId) {
         this.id = branchId;
+    }
+
+    public Branch(int branch_id, String branch_name) {
+        this.branch_name = branch_name;
+        this.id = branch_id;
     }
 
     public President getPresident() {

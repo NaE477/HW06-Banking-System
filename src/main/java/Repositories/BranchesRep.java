@@ -40,17 +40,15 @@ public class BranchesRep implements ThingCRUD<Branch> {
     @Override
     public Integer insert(Branch branch) {
         String insertStmt = "INSERT INTO branches (" +
-                "branch_name, bank_id, president_id" +
+                "branch_name, bank_id" +
                 ")" +
-                "VALUES (?,?,?)" +
+                "VALUES (?,?)" +
                 "RETURNING id;";
         try {
             PreparedStatement ps = connection.prepareStatement(insertStmt);
             ps.setString(1, branch.getBranch_name());
             ps.setInt(2, branch.getBank().getId());
-            ps.setInt(3, branch.getPresident().getUserId());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -64,8 +62,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
     public Branch read(Branch branch) {
         String selectStmt = "SELECT * FROM branches " +
                 " INNER JOIN banks b on b.id = branches.bank_id" +
-                " INNER JOIN presidents p on p.id = branches.president_id " +
-                " WHERE id = ?;";
+                " WHERE b.id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1, branch.getId());
@@ -73,10 +70,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
             if (rs.next()) {
                 return new Branch(
                         rs.getInt("id"),
-                        new Bank(rs.getInt("b.id"), rs.getString("bank_name")),
-                        new President(rs.getInt("p.id"), rs.getString("firstname"),
-                                rs.getString("lastname"), null, null,
-                                rs.getInt("branch_id"), rs.getDouble("salary")),
+                        new Bank(rs.getInt(4), rs.getString("bank_name")),
                         rs.getString("branch_name")
                 );
             } else return null;
@@ -90,8 +84,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
     public Branch read(Integer targetId) {
         String selectStmt = "SELECT * FROM branches " +
                 " INNER JOIN banks b on b.id = branches.bank_id" +
-                " INNER JOIN presidents p on p.id = branches.president_id " +
-                " WHERE id = ?;";
+                " WHERE branches.id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1, targetId);
@@ -99,10 +92,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
             if (rs.next()) {
                 return new Branch(
                         rs.getInt("id"),
-                        new Bank(rs.getInt("b.id"), rs.getString("bank_name")),
-                        new President(rs.getInt("p.id"), rs.getString("firstname"),
-                                rs.getString("lastname"), null, null,
-                                rs.getInt("branch_id"), rs.getDouble("salary")),
+                        new Bank(rs.getInt(1), rs.getString("bank_name")),
                         rs.getString("bank_name")
                 );
             } else return null;
@@ -117,7 +107,6 @@ public class BranchesRep implements ThingCRUD<Branch> {
         List<Branch> branches = new ArrayList<>();
         String selectStmt = "SELECT * FROM branches " +
                 " INNER JOIN banks b on b.id = branches.bank_id" +
-                " INNER JOIN presidents p on p.id = branches.president_id " +
                 ";";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
@@ -126,15 +115,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
                 branches.add(
                         new Branch(
                                 rs.getInt("id"),
-                                new Bank(rs.getInt("b.id"), rs.getString("bank_name")),
-                                new President(
-                                        rs.getInt("p.id"),
-                                        rs.getString("firstname"),
-                                        rs.getString("lastname"),
-                                        null,
-                                        null,
-                                        rs.getInt("branch_id"),
-                                        rs.getDouble("salary")),
+                                new Bank(rs.getInt(4), rs.getString("bank_name")),
                                 rs.getString("bank_name")
                         )
                 );

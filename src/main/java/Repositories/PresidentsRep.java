@@ -50,8 +50,7 @@ public class PresidentsRep implements UserCRUD<President> {
             ps.setString(4, president.getPassword());
             ps.setDouble(5, president.getSalary());
             ps.setInt(6, president.getBranch_id());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -172,8 +171,7 @@ public class PresidentsRep implements UserCRUD<President> {
             ps.setString(3, president.getLastname());
             ps.setDouble(4, president.getSalary());
             ps.setString(5, president.getUsername());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);
             }
@@ -191,8 +189,7 @@ public class PresidentsRep implements UserCRUD<President> {
                 PreparedStatement ps = connection.prepareStatement(passChangeStmt);
                 ps.setString(1, password);
                 ps.setString(2, username);
-                ps.executeUpdate();
-                ResultSet rs = ps.getGeneratedKeys();
+                ResultSet rs = ps.executeQuery();
                 if(rs.next()) {
                     return rs.getInt(1);
                 }

@@ -41,7 +41,6 @@ public class Clerk extends User {
         this.salary = salary;
     }
 
-    @Override
     public String toString() {
         return "Clerk ID: " + super.getUserId() +
                 " First Name: " + super.getFirstname() +

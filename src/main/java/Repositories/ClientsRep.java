@@ -36,7 +36,7 @@ public class ClientsRep implements UserCRUD<Client> {
 
     @Override
     public Integer insert(Client client) {
-        String insertStmt = "INSERT INTO clerks (firstname, lastname, username, password) " +
+        String insertStmt = "INSERT INTO clients (firstname, lastname, username, password) " +
                 "VALUES (?,?,?,?) RETURNING id;";
         try {
             PreparedStatement ps = connection.prepareStatement(insertStmt);
@@ -44,8 +44,7 @@ public class ClientsRep implements UserCRUD<Client> {
             ps.setString(2, client.getLastname());
             ps.setString(3, client.getUsername());
             ps.setString(4, client.getPassword());
-            ps.executeUpdate();
-            ResultSet generatedId = ps.getGeneratedKeys();
+            ResultSet generatedId = ps.executeQuery();
             if (generatedId.next()) {
                 return generatedId.getInt(1);
             }
@@ -125,9 +124,10 @@ public class ClientsRep implements UserCRUD<Client> {
 
     public List<Client> readAllByBranch(Integer branchId){
         List<Client> clients = new ArrayList<>();
-        String readQuery = "SELECT * FROM clients " +
-                "INNER JOIN accounts a on clients.id = a.client_id " +
-                "WHERE branch_id = ?;";
+        String readQuery = "SELECT clients.id,firstname,lastname,username,password FROM clients " +
+                "INNER JOIN accounts on accounts.branch_id = ?" +
+                "GROUP BY firstname, clients.id, lastname, username, password" +
+                " ORDER BY clients.id;";
         try {
             PreparedStatement ps = connection.prepareStatement(readQuery);
             ps.setInt(1,branchId);
@@ -160,8 +160,10 @@ public class ClientsRep implements UserCRUD<Client> {
             ps.setString(2, client.getFirstname());
             ps.setString(3, client.getLastname());
             ps.setString(4, client.getUsername());
-            ps.executeUpdate();
-            return ps.getResultSet().getInt("id");
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return rs.getInt("id");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -176,8 +178,7 @@ public class ClientsRep implements UserCRUD<Client> {
                 PreparedStatement ps = connection.prepareStatement(passChangeStmt);
                 ps.setString(1, password);
                 ps.setString(2, username);
-                ps.executeUpdate();
-                ResultSet rs = ps.getGeneratedKeys();
+                ResultSet rs = ps.executeQuery();
                 if(rs.next()) {
                     return rs.getInt(1);
                 }

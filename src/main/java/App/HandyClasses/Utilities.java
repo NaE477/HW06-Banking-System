@@ -118,6 +118,16 @@ public class Utilities {
         return 0;
     }
 
+    public long longReceiver(){
+        try{
+            return Long.parseLong(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.print("You should enter a number here: ");
+            longReceiver();
+        }
+        return 0;
+    }
+
     public Double doubleReceiver() {
         try {
             return Double.parseDouble(scanner.nextLine());
@@ -127,11 +137,50 @@ public class Utilities {
         }
         return 0.0;
     }
+    public Integer threeDigitsReceiver(){
+        while(true){
+            int input = intReceiver();
+            if(input < 100 || input > 999){
+                System.out.println("Enter a three digit number.");
+            }
+            else return input;
+        }
+    }
+
+    public Integer fourDigitsReceiver(){
+        while(true){
+            int input = intReceiver();
+            if(input < 1000 || input > 9999){
+                System.out.println("Enter a four digit number.");
+            }
+            else return input;
+        }
+    }
+
+    public Integer sixDigitReceiver(){
+        while (true) {
+            int input = intReceiver();
+            if (input < 100000 || input > 999999) {
+                System.out.println("Enter a six digit number here.");
+            }
+            else return input;
+        }
+    }
+    public String twelveDigitReceiver(){
+        while (true){
+            long input = longReceiver();
+            if(input < 100000000000L || input > 999999999999L){
+                System.out.println("Enter a sixteen digit number here.");
+            }
+            else return String.valueOf(input);
+        }
+    }
 
     public <T> void iterateThrough(List<T> lists){
         if(lists.size() > 0){
-            for(Object object : lists){
-                System.out.println(object);
+            for(T object : lists){
+                if(object != null)
+                System.out.println("\u001B[32m" + object.toString() + "\u001B[0m");
             }
         }
         else {
@@ -241,7 +290,6 @@ public class Utilities {
     private final String ANSI_RED = "\u001B[31m";
     private final String ANSI_GREEN = "\u001B[32m";
     private final String ANSI_YELLOW = "\u001B[33m";
-    private final String cinemaNameRegex = "^[a-zA-Z]{4,}(?: [a-zA-Z]+){0,2}$";
 
 
 }
