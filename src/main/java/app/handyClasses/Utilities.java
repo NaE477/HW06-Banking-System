@@ -95,11 +95,6 @@ public class Utilities {
                 return input;
             } else {
                 System.out.println("Wrong " + tag + " Format. Enter a Correct " + tag + " Format:");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
@@ -189,6 +184,15 @@ public class Utilities {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public int yearReceiver(){
+        while (true) {
+            System.out.println("Year: ");
+            int year = intReceiver();
+            if(year > 2030 || year < 2020) System.out.println("Enter a year between 2020 and 2030");
+            else return year;
         }
     }
 
