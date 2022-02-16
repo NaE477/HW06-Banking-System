@@ -25,8 +25,7 @@ public class BranchesRep implements ThingCRUD<Branch> {
                 "branch_name    VARCHAR(50)," +
                 "bank_id        INTEGER," +
                 "president_id   INTEGER," +
-                "FOREIGN KEY (bank_id) REFERENCES branches(id)," +
-                "FOREIGN KEY (president_id) REFERENCES presidents(id)" +
+                "FOREIGN KEY (bank_id) REFERENCES branches(id)" +
                 ");";
         try {
             PreparedStatement ps = connection.prepareStatement(createStmt);

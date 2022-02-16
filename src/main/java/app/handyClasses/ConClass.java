@@ -13,7 +13,7 @@ public class ConClass {
         try {
             Class.forName("org.postgresql.Driver");
             this.connection = DriverManager.
-                    getConnection("jdbc:postgresql://localhost:5432/bank",
+                    getConnection("jdbc:postgresql://localhost:5432/postgres",
                             "intellij", "intellij");
         }
         catch (SQLException e){

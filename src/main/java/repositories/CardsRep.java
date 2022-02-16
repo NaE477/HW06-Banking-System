@@ -31,11 +31,12 @@ public class CardsRep implements ThingCRUD<Card> {
                 "exp_date       DATE," +
                 "account_id     INTEGER," +
                 "cvv2           CHAR(3)," +
+                "card_status varchar," +
                 "FOREIGN KEY (account_id) REFERENCES accounts(id)" +
                 ")";
         try {
             PreparedStatement ps = connection.prepareStatement(createStmt);
-
+            ps.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -55,7 +56,7 @@ public class CardsRep implements ThingCRUD<Card> {
             ps.setDate(4, expDate);
             ps.setInt(5, card.getAccount().getId());
             ps.setString(6, String.valueOf(card.getCvv2()));
-            ps.setObject(7,CardStatus.BLOCKED.toString());
+            ps.setString(7,CardStatus.BLOCKED.toString());
             ResultSet rs = ps.executeQuery();
             if(rs.next()) {
                 return rs.getInt(1);

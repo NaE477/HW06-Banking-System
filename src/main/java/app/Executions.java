@@ -13,6 +13,7 @@ import entities.users.Clerk;
 import entities.users.President;
 import entities.users.Client;
 import entities.users.User;
+import repositories.*;
 import services.*;
 
 import java.sql.Connection;
@@ -36,6 +37,17 @@ public class Executions {
     static CardsService cardsService = new CardsService(connection);
 
     public static void main(String[] args) throws SQLException {
+        BranchesRep branchesRep = new BranchesRep(connection); branchesRep.create();
+        PresidentsRep presidentsRep = new PresidentsRep(connection); presidentsRep.insert();
+        BanksRep banksRep = new BanksRep(connection); banksRep.create();
+        ClerksRep clerksRep = new ClerksRep(connection); clerksRep.insert();
+        ClientsRep clientsRep = new ClientsRep(connection); clientsRep.insert();
+        AccountsRep accountsRep = new AccountsRep(connection); accountsRep.create();
+        CardsRep cardsRep = new CardsRep(connection); cardsRep.create();
+        TransactionsRep transactionsRep = new TransactionsRep(connection); transactionsRep.create();
+        TransactionToCardRep transactionToCardRep = new TransactionToCardRep(connection); transactionToCardRep.create();
+
+
         System.out.println("Welcome to bank application.");
         User user;
         while (true) {

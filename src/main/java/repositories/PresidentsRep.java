@@ -20,7 +20,7 @@ public class PresidentsRep implements UserCRUD<President> {
 
     @Override
     public void insert() {
-        String createStmt = "CREATE TABLE IF NOT EXISTS clerks (" +
+        String createStmt = "CREATE TABLE IF NOT EXISTS presidents (" +
                 "id         SERIAL PRIMARY KEY ," +
                 "firstname   VARCHAR(50)," +
                 "lastname   VARCHAR(50)," +

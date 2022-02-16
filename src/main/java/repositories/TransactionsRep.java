@@ -17,7 +17,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
 
     @Override
     public void create() {
-        String createStmt = "CREATE TABLE IF NOT EXISTS clients (" +
+        String createStmt = "CREATE TABLE IF NOT EXISTS transactions (" +
                 "id         SERIAL PRIMARY KEY ," +
                 "amount     DOUBLE PRECISION," +
                 "commission DOUBLE PRECISION," +
@@ -26,6 +26,7 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                 "account_id INTEGER," +
                 "branch_id  INTEGER," +
                 "bank_id    INTEGER," +
+                "status varchar," +
                 "transaction_time   timestamp" +
                 ");";
         try {

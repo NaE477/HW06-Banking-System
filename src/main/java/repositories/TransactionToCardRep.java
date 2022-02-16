@@ -16,7 +16,18 @@ public class TransactionToCardRep {
     }
 
     public void create() {
-
+        String createStmt = "CREATE TABLE IF NOT EXISTS transactiontocard (" +
+                "transaction_id integer," +
+                "account_id integer," +
+                "amount double precision," +
+                "type varchar" +
+                ");";
+        try {
+            PreparedStatement ps = connection.prepareStatement(createStmt);
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void insertSrc(Transaction transaction, TransactionType transactionType) {
