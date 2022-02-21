@@ -37,15 +37,24 @@ public class Executions {
     static CardsService cardsService = new CardsService(connection);
 
     public static void main(String[] args) throws SQLException {
-        BranchesRep branchesRep = new BranchesRep(connection); branchesRep.create();
-        PresidentsRep presidentsRep = new PresidentsRep(connection); presidentsRep.insert();
-        BanksRep banksRep = new BanksRep(connection); banksRep.create();
-        ClerksRep clerksRep = new ClerksRep(connection); clerksRep.insert();
-        ClientsRep clientsRep = new ClientsRep(connection); clientsRep.insert();
-        AccountsRep accountsRep = new AccountsRep(connection); accountsRep.create();
-        CardsRep cardsRep = new CardsRep(connection); cardsRep.create();
-        TransactionsRep transactionsRep = new TransactionsRep(connection); transactionsRep.create();
-        TransactionToCardRep transactionToCardRep = new TransactionToCardRep(connection); transactionToCardRep.create();
+        BranchesRep branchesRep = new BranchesRep(connection);
+        branchesRep.create();
+        PresidentsRep presidentsRep = new PresidentsRep(connection);
+        presidentsRep.insert();
+        BanksRep banksRep = new BanksRep(connection);
+        banksRep.create();
+        ClerksRep clerksRep = new ClerksRep(connection);
+        clerksRep.insert();
+        ClientsRep clientsRep = new ClientsRep(connection);
+        clientsRep.insert();
+        AccountsRep accountsRep = new AccountsRep(connection);
+        accountsRep.create();
+        CardsRep cardsRep = new CardsRep(connection);
+        cardsRep.create();
+        TransactionsRep transactionsRep = new TransactionsRep(connection);
+        transactionsRep.create();
+        TransactionToCardRep transactionToCardRep = new TransactionToCardRep(connection);
+        transactionToCardRep.create();
 
 
         System.out.println("Welcome to bank application.");
@@ -530,9 +539,9 @@ public class Executions {
                     System.out.print("Destination Card Number: ");
                     String desCardNum = utilities.twelveDigitReceiver();
                     Card destinationCard;
-                    if (!(cardsService.cardNumAvailable(desCardNum)) || desCardNum.equals(cardNumber)) {
+                    if ((!cardsService.cardNumAvailable(desCardNum))
+                            || desCardNum.equals(cardNumber)) {
                         utilities.printRed("Card Number is unavailable!");
-                        break;
                     } else {
                         destinationCard = cardsService.findByNumber(desCardNum);
                         destinationAccount = accountsService.findById(destinationCard.getAccount().getId());
@@ -591,8 +600,8 @@ public class Executions {
                         accountsService.doTransaction(thisAccount);
                         accountsService.doTransaction(destinationAccount);
                         utilities.printGreen("Transaction " + preformedTransactionId + " Done , " + amount.intValue() + "was withdrawn from your account with ID:" + thisAccount.getId());
-                        break;
                     }
+                    break;
                 }
             } else System.out.println("موجودی کلا کافی نیست");
         } catch (InterruptedException e) {

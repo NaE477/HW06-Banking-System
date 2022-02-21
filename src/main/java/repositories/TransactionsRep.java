@@ -162,12 +162,12 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
                 transactions.add(new Transaction(
                         rs.getInt(1),
                         rs.getInt(7),
-                        rs.getInt(6),
+                        rs.getInt(8),
                         rs.getInt(4),
                         rs.getInt(5),
                         rs.getDouble(2),
                         TransactionStatus.valueOf(rs.getString("status")),
-                        rs.getTimestamp(9)
+                        rs.getTimestamp(10)
                 ));
             }
             return transactions;
@@ -181,10 +181,11 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
         List<Transaction> transactions = new ArrayList<>();
         String selectStmt = "SELECT * FROM transactiontocard" +
                 " INNER JOIN transactions t on t.id = transactiontocard.transaction_id" +
-                " WHERE account_id = ?;";
+                " WHERE src_account_id = ? OR des_account_id = ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1,accountId);
+            ps.setInt(2,accountId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()){
                 transactions.add(
@@ -210,13 +211,14 @@ public class TransactionsRep implements ThingCRUD<Transaction> {
         List<Transaction> transactions = new ArrayList<>();
         String selectStmt = "SELECT * FROM transactions " +
                 "INNER JOIN transactiontocard t on t.transaction_id = transactions.id" +
-                " WHERE account_id = ? " +
-                "AND transaction_time >= ? AND transaction_time < ?";
+                " WHERE src_account_id = ? OR des_account_id = ? AND " +
+                " transaction_time >= ? AND transaction_time < ?;";
         try {
             PreparedStatement ps = connection.prepareStatement(selectStmt);
             ps.setInt(1,accountId);
-            ps.setTimestamp(2,from);
-            ps.setTimestamp(3,new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2,accountId);
+            ps.setTimestamp(3,from);
+            ps.setTimestamp(4,new Timestamp(System.currentTimeMillis()));
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 transactions.add(new Transaction(
